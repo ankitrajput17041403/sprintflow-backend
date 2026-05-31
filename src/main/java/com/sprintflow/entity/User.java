@@ -32,4 +32,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
 }
