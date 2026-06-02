@@ -8,7 +8,11 @@ import com.sprintflow.repository.OrganizationRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.service.ProjectService;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+@Service
 @AllArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
@@ -38,5 +42,20 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getCreatedAt(),
                 organization.getName()
         );
+    }
+
+    @Override
+    public List<ProjectResponse> getAllProjects() {
+
+        return projectRepository.findAll()
+                .stream()
+                .map(project -> new ProjectResponse(
+                        project.getId(),
+                        project.getName(),
+                        project.getDescription(),
+                        project.getCreatedAt(),
+                        project.getOrganization().getName()
+                ))
+                .toList();
     }
 }
