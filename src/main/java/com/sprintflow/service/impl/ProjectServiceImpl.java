@@ -2,6 +2,7 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.CreateProjectRequest;
 import com.sprintflow.dto.ProjectResponse;
+import com.sprintflow.dto.UpdateProjectRequest;
 import com.sprintflow.entity.Organization;
 import com.sprintflow.entity.Project;
 import com.sprintflow.repository.OrganizationRepository;
@@ -58,4 +59,60 @@ public class ProjectServiceImpl implements ProjectService {
                 ))
                 .toList();
     }
+
+    @Override
+    public ProjectResponse getProjectById(Long id) {
+
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
+    }
+
+    @Override
+    public ProjectResponse updateProject(
+            Long id,
+            UpdateProjectRequest request) {
+
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+
+        project = projectRepository.save(project);
+
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
+    }
+
+    @Override
+    public ProjectResponse deleteProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+        projectRepository.delete(project);
+        return  new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
+    }
+
+
 }

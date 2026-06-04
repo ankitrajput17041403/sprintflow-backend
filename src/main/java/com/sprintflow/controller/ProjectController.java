@@ -2,6 +2,7 @@ package com.sprintflow.controller;
 
 import com.sprintflow.dto.CreateProjectRequest;
 import com.sprintflow.dto.ProjectResponse;
+import com.sprintflow.dto.UpdateProjectRequest;
 import com.sprintflow.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,25 @@ public class ProjectController {
     @GetMapping("/all")
     public List<ProjectResponse> getAllProjects(){
         return projectService.getAllProjects();
+    }
+
+    @GetMapping("/{id}")
+    public ProjectResponse getProjectById(@PathVariable  Long id){
+        return projectService.getProjectById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ProjectResponse updateProject(
+            @PathVariable Long id,
+            @RequestBody UpdateProjectRequest request) {
+
+        return projectService.updateProject(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ProjectResponse updateProject(
+            @PathVariable Long id) {
+
+        return projectService.deleteProject(id);
     }
 }
