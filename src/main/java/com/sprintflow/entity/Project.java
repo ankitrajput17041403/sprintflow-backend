@@ -30,6 +30,10 @@ public class Project {
     @JoinColumn(name = "organization_id")
     private Organization organization;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
