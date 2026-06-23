@@ -51,15 +51,12 @@ public class ProjectServiceImpl implements ProjectService {
 //    }
 
 
-
     @Override
     public ProjectResponse createProject(CreateProjectRequest request) {
 
-        User currentUser =
-                currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
 
-        Organization organization =
-                currentUser.getOrganization();
+        Organization organization = currentUser.getOrganization();
 
         Project project = new Project();
 
@@ -70,82 +67,158 @@ public class ProjectServiceImpl implements ProjectService {
 
         project = projectRepository.save(project);
 
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getDescription(),
-                project.getCreatedAt(),
-                organization.getName()
-        );
+        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), organization.getName());
     }
+
+//    @Override
+//    public List<ProjectResponse> getAllProjects() {
+//
+//        return projectRepository.findAll()
+//                .stream()
+//                .map(project -> new ProjectResponse(
+//                        project.getId(),
+//                        project.getName(),
+//                        project.getDescription(),
+//                        project.getCreatedAt(),
+//                        project.getOrganization().getName()
+//                ))
+//                .toList();
+//    }
 
     @Override
     public List<ProjectResponse> getAllProjects() {
 
-        return projectRepository.findAll()
-                .stream()
-                .map(project -> new ProjectResponse(
-                        project.getId(),
-                        project.getName(),
-                        project.getDescription(),
-                        project.getCreatedAt(),
-                        project.getOrganization().getName()
-                ))
-                .toList();
+        //Login_Current_user---
+        User currentUser = currentUserService.getCurrentUser();
+
+        //organizationId---
+        long organization = currentUser.getOrganization().getId();
+
+        return projectRepository.findByOrganizationId(organization).stream().map(project -> new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName())).toList();
     }
+
+
+//    @Override
+//    public ProjectResponse getProjectById(Long id) {
+//
+//
+//        Project project = projectRepository.findById(id)
+//                .orElseThrow(() ->
+//                        new RuntimeException("Project not found"));
+//
+//        return new ProjectResponse(
+//                project.getId(),
+//                project.getName(),
+//                project.getDescription(),
+//                project.getCreatedAt(),
+//                project.getOrganization().getName()
+//        );
+//    }
+
 
     @Override
     public ProjectResponse getProjectById(Long id) {
 
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+        //Login_Current_user---
+        User currentUser = currentUserService.getCurrentUser();
 
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getDescription(),
-                project.getCreatedAt(),
-                project.getOrganization().getName()
-        );
+        //organizationId---
+        Long organizationId = currentUser.getOrganization().getId();
+
+        //1st way ------------
+//        Project project = projectRepository.findById(id)
+//                .orElseThrow(() ->
+//                        new RuntimeException("Project not found"));
+//
+//        if (!organizationId.equals(project.getOrganization().getId())) {
+//            throw new RuntimeException(
+//                    "Access denied");
+//        }
+
+        //2nd way------
+        Project project = projectRepository.findByIdAndOrganizationId(id, organizationId).orElseThrow(() -> new RuntimeException("Project NOT Found"));
+        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
     }
 
-    @Override
-    public ProjectResponse updateProject(
-            Long id,
-            UpdateProjectRequest request) {
 
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+//    @Override
+//    public ProjectResponse updateProject(
+//            Long id,
+//            UpdateProjectRequest request) {
+//
+//        Project project = projectRepository.findById(id)
+//                .orElseThrow(() ->
+//                        new RuntimeException("Project not found"));
+//
+//        project.setName(request.getName());
+//        project.setDescription(request.getDescription());
+//
+//        project = projectRepository.save(project);
+//
+//        return new ProjectResponse(
+//                project.getId(),
+//                project.getName(),
+//                project.getDescription(),
+//                project.getCreatedAt(),
+//                project.getOrganization().getName()
+//        );
+//    }
+
+    @Override
+    public ProjectResponse updateProject(Long id, UpdateProjectRequest request) {
+
+        //Login_Current_user---
+        User currentUser = currentUserService.getCurrentUser();
+
+        //organizationId---
+        Long organizationId = currentUser.getOrganization().getId();
+
+        Project project = projectRepository.findById(id).orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!organizationId.equals(project.getOrganization().getId())) {
+            throw new RuntimeException("Access denied");
+        }
 
         project.setName(request.getName());
         project.setDescription(request.getDescription());
 
         project = projectRepository.save(project);
 
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getDescription(),
-                project.getCreatedAt(),
-                project.getOrganization().getName()
-        );
+        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
     }
+
+//    @Override
+//    public ProjectResponse deleteProject(Long id) {
+//
+//        Project project = projectRepository.findById(id)
+//                .orElseThrow(() ->
+//                        new RuntimeException("Project not found"));
+//        projectRepository.delete(project);
+//        return  new ProjectResponse(
+//                project.getId(),
+//                project.getName(),
+//                project.getDescription(),
+//                project.getCreatedAt(),
+//                project.getOrganization().getName()
+//        );
+//    }
 
     @Override
     public ProjectResponse deleteProject(Long id) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+
+        //Login_Current_user---
+        User currentUser = currentUserService.getCurrentUser();
+
+        //organizationId---
+        Long organizationId = currentUser.getOrganization().getId();
+
+        Project project = projectRepository.findById(id).orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!organizationId.equals(project.getOrganization().getId())) {
+            throw new RuntimeException("Access denied");
+        }
         projectRepository.delete(project);
-        return  new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getDescription(),
-                project.getCreatedAt(),
-                project.getOrganization().getName()
-        );
+        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
     }
 
 
