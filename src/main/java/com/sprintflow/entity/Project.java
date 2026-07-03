@@ -26,6 +26,7 @@ public class Project {
 
     private LocalDateTime createdAt;
 
+
     @ManyToOne
     @JoinColumn(name = "organization_id")
     private Organization organization;
@@ -38,4 +39,6 @@ public class Project {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+
 }

@@ -58,6 +58,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         Organization organization = currentUser.getOrganization();
 
+
         Project project = new Project();
 
         project.setName(request.getName());

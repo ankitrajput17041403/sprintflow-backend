@@ -31,15 +31,23 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email Already Exist");
         }
-        Organization organization = new Organization();
-        organization.setName(request.getOrganizationName());
-        organization = organizationRepository.save(organization);
+        Organization organization = organizationRepository
+                .findByName(request.getOrganizationName())
+                .orElse(null);
+
+        if (organization == null) {
+
+            organization = new Organization();
+            organization.setName(request.getOrganizationName());
+
+            organization = organizationRepository.save(organization);
+        }
 
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ORG_ADMIN);
+        user.setRole(request.getRole());
         user.setOrganization(organization);
 
         userRepository.save(user);

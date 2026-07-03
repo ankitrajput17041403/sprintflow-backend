@@ -9,4 +9,5 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
 
     @Override
     Optional<Organization> findById(Long id);
+    Optional<Organization> findByName(String name);
 }

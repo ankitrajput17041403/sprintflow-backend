@@ -1,5 +1,6 @@
 package com.sprintflow.dto;
 
+import com.sprintflow.entity.Organization;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,5 +14,5 @@ public class CreateProjectRequest {
 
     private String description;
 
-    private Long organizationId;
+    private Organization organizationId;
 }
