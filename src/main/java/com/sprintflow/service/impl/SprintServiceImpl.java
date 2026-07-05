@@ -67,8 +67,34 @@ public class SprintServiceImpl implements SprintService {
 
     @Override
     public List<SprintResponse> getAllSprints(Long projectId) {
-        return List.of();
-    }
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        Long organizationId =
+                currentUser.getOrganization().getId();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        if (!organizationId.equals(project.getOrganization().getId())) {
+
+            throw new RuntimeException("Access denied");
+        }
+               List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+
+        return sprints.stream()
+                .map(sprint -> new SprintResponse(
+                        sprint.getId(),
+                        sprint.getName(),
+                        sprint.getGoal(),
+                        sprint.getStartDate(),
+                        sprint.getEndDate(),
+                        sprint.getStatus(),
+                        sprint.getCreatedAt(),
+                        sprint.getProject().getName()
+                ))
+                .toList();    }
 
     @Override
     public SprintResponse getSprintById(Long id) {
