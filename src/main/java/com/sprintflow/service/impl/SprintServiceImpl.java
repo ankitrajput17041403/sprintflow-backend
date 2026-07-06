@@ -96,16 +96,76 @@ public class SprintServiceImpl implements SprintService {
                 ))
                 .toList();    }
 
+
     @Override
     public SprintResponse getSprintById(Long id) {
-        return null;
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        Long organizationId =
+                currentUser.getOrganization().getId();
+
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Sprint not found"));
+
+        if (!organizationId.equals(
+                sprint.getProject().getOrganization().getId())) {
+
+            throw new RuntimeException("Access denied");
+        }
+
+        return new SprintResponse(
+                sprint.getId(),
+                sprint.getName(),
+                sprint.getGoal(),
+                sprint.getStartDate(),
+                sprint.getEndDate(),
+                sprint.getStatus(),
+                sprint.getCreatedAt(),
+                sprint.getProject().getName()
+        );
     }
+
+
 
     @Override
     public SprintResponse updateSprint(Long id, UpdateSprintRequest request) {
-        return null;
-    }
 
+        User currentUser = currentUserService.getCurrentUser();
+
+        Long organizationId =
+                currentUser.getOrganization().getId();
+
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Sprint not found"));
+
+        if (!organizationId.equals(
+                sprint.getProject().getOrganization().getId())) {
+
+            throw new RuntimeException("Access denied");
+        }
+
+        sprint.setName(request.getName());
+        sprint.setGoal(request.getGoal());
+        sprint.setStartDate(request.getStartDate());
+        sprint.setEndDate(request.getEndDate());
+        sprint.setStatus(request.getStatus());
+
+        sprintRepository.save(sprint);
+
+        return new SprintResponse(
+                sprint.getId(),
+                sprint.getName(),
+                sprint.getGoal(),
+                sprint.getStartDate(),
+                sprint.getEndDate(),
+                sprint.getStatus(),
+                sprint.getCreatedAt(),
+                sprint.getProject().getName()
+        );
+    }
     @Override
     public SprintResponse deleteSprint(Long id) {
         return null;
