@@ -9,6 +9,7 @@ import com.sprintflow.entity.User;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.service.CurrentUserService;
+import com.sprintflow.service.OrganizationSecurityService;
 import com.sprintflow.service.SprintService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,23 +24,18 @@ public class SprintServiceImpl implements SprintService {
     private final SprintRepository sprintRepository;
     private final CurrentUserService currentUserService;
     private final ProjectRepository projectRepository;
+    private final OrganizationSecurityService organizationSecurityService;
 
     @Override
     public SprintResponse createSprint(CreateSprintRequest request) {
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        Long organizationId =
-                currentUser.getOrganization().getId();
 
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() ->
                         new RuntimeException("Project not found"));
 
-        if (!organizationId.equals(project.getOrganization().getId())) {
+        organizationSecurityService.validateProjectAccess(project);
 
-            throw new RuntimeException("Access denied");
-        }
+
         Sprint sprint = new Sprint();
         sprint.setName(request.getName());
         sprint.setGoal(request.getGoal());
@@ -47,105 +43,57 @@ public class SprintServiceImpl implements SprintService {
         sprint.setEndDate(request.getEndDate());
         sprint.setStatus(request.getStatus());
         sprint.setProject(project);
-        sprint.setCreatedBy(currentUser);
+        sprint.setCreatedBy(currentUserService.getCurrentUser());
         sprint.setCreatedAt(LocalDateTime.now());
         sprintRepository.save(sprint);
 
 
-        return new SprintResponse(
-                sprint.getId(),
-                sprint.getName(),
-                sprint.getGoal(),
-                sprint.getStartDate(),
-                sprint.getEndDate(),
-                sprint.getStatus(),
-                sprint.getCreatedAt(),
-                sprint.getProject().getName()
-        );
+        return mapToResponse(sprint);
 
     }
 
     @Override
     public List<SprintResponse> getAllSprints(Long projectId) {
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        Long organizationId =
-                currentUser.getOrganization().getId();
-
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
                         new RuntimeException("Project not found"));
 
-        if (!organizationId.equals(project.getOrganization().getId())) {
+        organizationSecurityService.validateProjectAccess(project);
 
-            throw new RuntimeException("Access denied");
-        }
-               List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+        List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+
 
         return sprints.stream()
-                .map(sprint -> new SprintResponse(
-                        sprint.getId(),
-                        sprint.getName(),
-                        sprint.getGoal(),
-                        sprint.getStartDate(),
-                        sprint.getEndDate(),
-                        sprint.getStatus(),
-                        sprint.getCreatedAt(),
-                        sprint.getProject().getName()
-                ))
-                .toList();    }
+                .map(this::mapToResponse)
+                .toList();
+    }
 
 
     @Override
     public SprintResponse getSprintById(Long id) {
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        Long organizationId =
-                currentUser.getOrganization().getId();
-
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Sprint not found"));
 
-        if (!organizationId.equals(
-                sprint.getProject().getOrganization().getId())) {
 
-            throw new RuntimeException("Access denied");
-        }
+        organizationSecurityService.validateSprintAccess(sprint);
 
-        return new SprintResponse(
-                sprint.getId(),
-                sprint.getName(),
-                sprint.getGoal(),
-                sprint.getStartDate(),
-                sprint.getEndDate(),
-                sprint.getStatus(),
-                sprint.getCreatedAt(),
-                sprint.getProject().getName()
-        );
+        return mapToResponse(sprint);
+
     }
-
 
 
     @Override
     public SprintResponse updateSprint(Long id, UpdateSprintRequest request) {
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        Long organizationId =
-                currentUser.getOrganization().getId();
 
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Sprint not found"));
 
-        if (!organizationId.equals(
-                sprint.getProject().getOrganization().getId())) {
-
-            throw new RuntimeException("Access denied");
-        }
+        organizationSecurityService.validateSprintAccess(sprint);
 
         sprint.setName(request.getName());
         sprint.setGoal(request.getGoal());
@@ -155,6 +103,28 @@ public class SprintServiceImpl implements SprintService {
 
         sprintRepository.save(sprint);
 
+        return mapToResponse(sprint);
+
+    }
+
+    @Override
+    public SprintResponse deleteSprint(Long id) {
+
+
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Sprint not found"));
+
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        sprintRepository.delete(sprint);
+
+        return mapToResponse(sprint);
+
+    }
+
+    private SprintResponse mapToResponse(Sprint sprint) {
+
         return new SprintResponse(
                 sprint.getId(),
                 sprint.getName(),
@@ -165,9 +135,5 @@ public class SprintServiceImpl implements SprintService {
                 sprint.getCreatedAt(),
                 sprint.getProject().getName()
         );
-    }
-    @Override
-    public SprintResponse deleteSprint(Long id) {
-        return null;
     }
 }

@@ -26,5 +26,5 @@ public class UpdateSprintRequest {
         @NotNull
         private SprintStatus status;
     }
-}
+
 

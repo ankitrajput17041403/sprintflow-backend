@@ -20,6 +20,12 @@ public class CurrentUserService {
         String email = authentication.getName();
         System.out.println("Login USER it is.."+email);
 
-        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+    public Long getCurrentOrganizationId() {
+        return getCurrentUser()
+                .getOrganization()
+                .getId();
     }
 }
