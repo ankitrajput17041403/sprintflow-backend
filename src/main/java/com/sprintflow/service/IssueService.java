@@ -8,6 +8,7 @@ import com.sprintflow.entity.Project;
 import java.util.List;
 
 public interface IssueService {
+    //CRUD
     IssueResponse createIssue(CreateIssueRequest request);
 
     List<IssueResponse> getAllIssues(Long projectId);
@@ -17,4 +18,14 @@ public interface IssueService {
     IssueResponse updateIssue(Long id, UpdateIssueRequest request);
 
     IssueResponse deleteIssue(Long id);
+
+
+    //Sprint Operations
+    IssueResponse assignIssueToSprint(Long issueId, Long sprintId);
+
+    List<IssueResponse> getIssuesBySprint(Long sprintId);
+
+    IssueResponse removeIssueFromSprint(Long issueId);
+
+
 }

@@ -5,7 +5,8 @@ import com.sprintflow.dto.SprintResponse;
 import com.sprintflow.dto.UpdateSprintRequest;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.Sprint;
-import com.sprintflow.entity.User;
+
+import com.sprintflow.enums.SprintStatus;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.service.CurrentUserService;
@@ -41,7 +42,7 @@ public class SprintServiceImpl implements SprintService {
         sprint.setGoal(request.getGoal());
         sprint.setStartDate(request.getStartDate());
         sprint.setEndDate(request.getEndDate());
-        sprint.setStatus(request.getStatus());
+        sprint.setStatus(SprintStatus.PLANNED);
         sprint.setProject(project);
         sprint.setCreatedBy(currentUserService.getCurrentUser());
         sprint.setCreatedAt(LocalDateTime.now());

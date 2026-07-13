@@ -59,5 +59,24 @@ public class IssueController {
         return ResponseEntity.ok(
                 issueService.deleteIssue(id));
     }
+
+    @PutMapping("/{issueId}/assign-sprint/{sprintId}")
+    public ResponseEntity<IssueResponse> assignIssueToSprint(
+            @PathVariable Long issueId,
+            @PathVariable Long sprintId) {
+
+        return ResponseEntity.ok(
+                issueService.assignIssueToSprint(issueId, sprintId)
+        );
+    }
+
+    @DeleteMapping("/{issueId}/remove-sprint")
+    public ResponseEntity<IssueResponse> removeIssueFromSprint(
+            @PathVariable Long issueId) {
+
+        return ResponseEntity.ok(
+                issueService.removeIssueFromSprint(issueId)
+        );
+    }
 }
 

@@ -27,6 +27,9 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
 
     @Override
     public void validateIssueAccess(Issue issue) {
+        Long currentUserServiceId = currentUserService.getCurrentOrganizationId();
+        if(!currentUserServiceId.equals(issue.getProject().getOrganization().getId())){
+            throw new RuntimeException("Access denied");        }
 
     }
 

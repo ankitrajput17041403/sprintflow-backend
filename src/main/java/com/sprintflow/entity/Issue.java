@@ -43,4 +43,8 @@ public class Issue {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+    @ManyToOne
+    @JoinColumn(name = "sprint_id")
+    private Sprint sprint;
 }

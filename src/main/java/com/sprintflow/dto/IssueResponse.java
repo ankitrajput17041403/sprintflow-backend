@@ -26,4 +26,6 @@ public class IssueResponse {
     private LocalDateTime createdAt;
 
     private String projectName;
+
+    private String sprintName;
 }

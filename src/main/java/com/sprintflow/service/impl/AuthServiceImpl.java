@@ -60,14 +60,22 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
+        try{
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 )
         );
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        System.out.println("Authentication successful");
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        //Password is-Pass@123
 
         String token = jwtService.generateToken(user.getEmail());
 

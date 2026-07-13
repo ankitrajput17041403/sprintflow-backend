@@ -2,16 +2,16 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.CreateIssueRequest;
 import com.sprintflow.dto.IssueResponse;
+import com.sprintflow.dto.SprintResponse;
 import com.sprintflow.dto.UpdateIssueRequest;
-import com.sprintflow.entity.Issue;
-import com.sprintflow.entity.Organization;
-import com.sprintflow.entity.Project;
-import com.sprintflow.entity.User;
+import com.sprintflow.entity.*;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
+import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.repository.UserRepository;
 import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.IssueService;
+import com.sprintflow.service.OrganizationSecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +25,8 @@ public class IssueServiceImpl implements IssueService {
     private final IssueRepository issueRepository;
     private final CurrentUserService currentUserService;
     private final ProjectRepository projectRepository;
+    private final OrganizationSecurityService organizationSecurityService;
+    private final SprintRepository sprintRepository;
 
 
     @Override
@@ -58,15 +60,7 @@ public class IssueServiceImpl implements IssueService {
         issue.setCreatedBy(currentUser);
         issue = issueRepository.save(issue);
 
-        return new IssueResponse(
-                issue.getId(),
-                issue.getTitle(),
-                issue.getDescription(),
-                issue.getStatus(),
-                issue.getPriority(),
-                issue.getCreatedAt(),
-                issue.getProject().getName()
-        );
+        return mapToResponse(issue);
     }
 
 
@@ -90,16 +84,7 @@ public class IssueServiceImpl implements IssueService {
                 issueRepository.findByProjectId(projectId);
 
         return issues.stream()
-                .map(issue -> new IssueResponse(
-                        issue.getId(),
-                        issue.getTitle(),
-                        issue.getDescription(),
-                        issue.getStatus(),
-                        issue.getPriority(),
-                        issue.getCreatedAt(),
-                        issue.getProject().getName()
-                ))
-                .toList();
+                .map(issue -> mapToResponse(issue)).toList();
     }
 
     @Override
@@ -125,15 +110,7 @@ public class IssueServiceImpl implements IssueService {
             throw new RuntimeException("Access denied");
         }
 
-        return new IssueResponse(
-                issue.getId(),
-                issue.getTitle(),
-                issue.getDescription(),
-                issue.getStatus(),
-                issue.getPriority(),
-                issue.getCreatedAt(),
-                issue.getProject().getName()
-        );
+        return mapToResponse(issue);
     }
 
     @Override
@@ -163,15 +140,7 @@ public class IssueServiceImpl implements IssueService {
 
         issue = issueRepository.save(issue);
 
-        return new IssueResponse(
-                issue.getId(),
-                issue.getTitle(),
-                issue.getDescription(),
-                issue.getStatus(),
-                issue.getPriority(),
-                issue.getCreatedAt(),
-                issue.getProject().getName()
-        );
+        return mapToResponse(issue);
     }
 
     @Override
@@ -191,6 +160,62 @@ public class IssueServiceImpl implements IssueService {
             throw new RuntimeException("Access denied");
         }
         issueRepository.delete(issue);
+         return mapToResponse(issue);
+
+
+    }
+
+    @Override
+    public IssueResponse assignIssueToSprint(Long issueId, Long sprintId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() ->
+                        new RuntimeException("Issue not found"));
+
+        organizationSecurityService.validateIssueAccess(issue);
+         Sprint sprint = sprintRepository.findById(sprintId)
+                 .orElseThrow(()->
+                         new RuntimeException("Sprint Not Found"));
+
+         organizationSecurityService.validateSprintAccess(sprint);
+
+        if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
+            throw new RuntimeException("Issue and Sprint must belong to the same project");
+        }
+
+        issue.setSprint(sprint);
+        issueRepository.save(issue);
+
+        return mapToResponse(issue);
+    }
+
+    @Override
+    public List<IssueResponse> getIssuesBySprint(Long sprintId) {
+        Sprint sprint = sprintRepository.findById(sprintId)
+                .orElseThrow(()->
+                        new RuntimeException("Sprint Not Found"));
+
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        List<Issue> issues = issueRepository.findBySprintId(sprintId);
+        return issues.stream().map(issue -> mapToResponse(issue))
+                .toList();
+    }
+
+    @Override
+    public IssueResponse removeIssueFromSprint(Long issueId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(()->
+                        new RuntimeException("Issue Not Found"));
+
+        organizationSecurityService.validateIssueAccess(issue);
+        issue.setSprint(null);
+        issueRepository.save(issue);
+
+        return mapToResponse(issue);
+    }
+
+    private IssueResponse mapToResponse(Issue issue) {
+
         return new IssueResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -198,9 +223,10 @@ public class IssueServiceImpl implements IssueService {
                 issue.getStatus(),
                 issue.getPriority(),
                 issue.getCreatedAt(),
-                issue.getProject().getName()
+                issue.getProject().getName(),
+                issue.getSprint() != null
+                        ? issue.getSprint().getName()
+                        : null
         );
-
-
     }
 }

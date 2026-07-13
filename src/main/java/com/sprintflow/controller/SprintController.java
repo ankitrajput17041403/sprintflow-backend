@@ -2,9 +2,11 @@ package com.sprintflow.controller;
 
 
 import com.sprintflow.dto.CreateSprintRequest;
+import com.sprintflow.dto.IssueResponse;
 import com.sprintflow.dto.SprintResponse;
 import com.sprintflow.dto.UpdateSprintRequest;
 
+import com.sprintflow.service.IssueService;
 import com.sprintflow.service.SprintService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.List;
 public class SprintController {
 
     private final SprintService sprintService;
+    private final IssueService issueService;
 
     @PostMapping
     public ResponseEntity<SprintResponse> createSprint(@Valid @RequestBody CreateSprintRequest request){
@@ -65,4 +68,11 @@ public class SprintController {
                 sprintService.deleteSprint(id)
         );
     }
-}
+    @GetMapping("/{sprintId}/issues")
+    public ResponseEntity<List<IssueResponse>> getIssuesBySprint(
+            @PathVariable Long sprintId) {
+
+        return ResponseEntity.ok(
+                issueService.getIssuesBySprint(sprintId)
+        );
+    }}
