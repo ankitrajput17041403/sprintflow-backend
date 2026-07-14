@@ -75,4 +75,14 @@ public class SprintController {
         return ResponseEntity.ok(
                 issueService.getIssuesBySprint(sprintId)
         );
-    }}
+    }
+
+    @PutMapping("/{id}/start")
+    public ResponseEntity<SprintResponse> startSprint(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                sprintService.startSprint(id)
+        );
+    }
+}

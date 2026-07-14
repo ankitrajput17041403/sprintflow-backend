@@ -124,6 +124,41 @@ public class SprintServiceImpl implements SprintService {
 
     }
 
+    @Override
+    public SprintResponse startSprint(Long id) {
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Sprint not found"));
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        if (sprint.getStatus() != SprintStatus.PLANNED) {
+            throw new RuntimeException("Only planned sprint can be started");
+        }
+        if (sprintRepository.existsByProjectIdAndStatus(sprint.getProject().getId(), SprintStatus.ACTIVE)) {
+
+            throw new RuntimeException(
+                    "Project already has an active sprint");
+        }
+        sprint.setStatus(SprintStatus.ACTIVE);
+        sprintRepository.save(sprint);
+        return mapToResponse(sprint);
+
+    }
+
+    @Override
+    public SprintResponse completeSprint(Long id) {
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Sprint not found"));
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        if (sprint.getStatus() != SprintStatus.ACTIVE) {
+            throw new RuntimeException("Only active sprint can be completed");
+        }
+        sprint.setStatus(SprintStatus.COMPLETED);
+        return mapToResponse(sprint);
+    }
+
     private SprintResponse mapToResponse(Sprint sprint) {
 
         return new SprintResponse(

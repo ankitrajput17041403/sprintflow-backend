@@ -20,4 +20,8 @@ public interface SprintService {
     SprintResponse updateSprint(Long id, UpdateSprintRequest request);
 
     SprintResponse deleteSprint(Long id);
+
+    SprintResponse startSprint(Long id);
+
+    SprintResponse completeSprint(Long id);
 }

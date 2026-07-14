@@ -22,8 +22,7 @@ import java.time.LocalDate;
         @NotNull
         private LocalDate endDate;
 
-        @NotNull
-        private SprintStatus status;
+
 
         @NotNull
         private Long projectId;
