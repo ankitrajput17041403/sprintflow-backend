@@ -156,6 +156,7 @@ public class SprintServiceImpl implements SprintService {
             throw new RuntimeException("Only active sprint can be completed");
         }
         sprint.setStatus(SprintStatus.COMPLETED);
+        sprintRepository.save(sprint);
         return mapToResponse(sprint);
     }
 

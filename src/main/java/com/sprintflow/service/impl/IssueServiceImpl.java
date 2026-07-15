@@ -214,6 +214,11 @@ public class IssueServiceImpl implements IssueService {
         return mapToResponse(issue);
     }
 
+    @Override
+    public List<IssueResponse> getBacklogIssues(Long projectId) {
+        return List.of();
+    }
+
     private IssueResponse mapToResponse(Issue issue) {
 
         return new IssueResponse(

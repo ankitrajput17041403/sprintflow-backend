@@ -9,4 +9,8 @@ public interface IssueRepository extends JpaRepository<Issue,Long> {
     List<Issue> findByProjectId(Long projectId);
     List<Issue> findBySprintId(Long sprintId);
 
+
+    //Backlogs
+    List<Issue> findByProjectIdAndSprintIsNull(Long projectId);
+
 }

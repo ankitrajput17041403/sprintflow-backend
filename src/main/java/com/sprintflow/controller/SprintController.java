@@ -85,4 +85,12 @@ public class SprintController {
                 sprintService.startSprint(id)
         );
     }
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<SprintResponse> completeSprint(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                sprintService.completeSprint(id)
+        );
+    }
 }

@@ -28,4 +28,6 @@ public interface IssueService {
     IssueResponse removeIssueFromSprint(Long issueId);
 
 
+    //Backlog
+    List<IssueResponse> getBacklogIssues(Long projectId);
 }
