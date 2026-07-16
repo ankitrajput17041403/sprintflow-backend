@@ -1,11 +1,14 @@
 package com.sprintflow.controller;
 
 import com.sprintflow.dto.CreateProjectRequest;
+import com.sprintflow.dto.IssueResponse;
 import com.sprintflow.dto.ProjectResponse;
 import com.sprintflow.dto.UpdateProjectRequest;
+import com.sprintflow.service.IssueService;
 import com.sprintflow.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final IssueService issueService;
 
     @PostMapping("/create")
     public ProjectResponse createProject(
@@ -47,5 +51,17 @@ public class ProjectController {
             @PathVariable Long id) {
 
         return projectService.deleteProject(id);
+    }
+
+
+    //Backlog Strt frm here---
+
+    @GetMapping("/{projectId}/backlog")
+    public ResponseEntity<List<IssueResponse>> getBacklogIssues(
+            @PathVariable Long projectId) {
+
+        return ResponseEntity.ok(
+                issueService.getBacklogIssues(projectId)
+        );
     }
 }

@@ -29,6 +29,7 @@ public class IssueServiceImpl implements IssueService {
     private final SprintRepository sprintRepository;
 
 
+
     @Override
     public IssueResponse createIssue(CreateIssueRequest request) {
 
@@ -62,6 +63,7 @@ public class IssueServiceImpl implements IssueService {
 
         return mapToResponse(issue);
     }
+
 
 
     @Override
@@ -178,6 +180,10 @@ public class IssueServiceImpl implements IssueService {
 
          organizationSecurityService.validateSprintAccess(sprint);
 
+        System.out.println("This is Issue Proejct Id--"+issue.getProject().getId());
+        System.out.println("This is Sprint Proejct Id--"+sprint.getProject().getId());
+
+
         if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
             throw new RuntimeException("Issue and Sprint must belong to the same project");
         }
@@ -216,7 +222,19 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     public List<IssueResponse> getBacklogIssues(Long projectId) {
-        return List.of();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        organizationSecurityService.validateProjectAccess(project);
+
+        List<Issue> issues =
+                issueRepository.findByProjectIdAndSprintIsNull(projectId);
+
+        return issues.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     private IssueResponse mapToResponse(Issue issue) {

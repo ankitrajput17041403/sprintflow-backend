@@ -78,5 +78,6 @@ public class IssueController {
                 issueService.removeIssueFromSprint(issueId)
         );
     }
+
 }
 

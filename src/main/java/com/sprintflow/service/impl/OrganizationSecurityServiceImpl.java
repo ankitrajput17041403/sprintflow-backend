@@ -28,6 +28,7 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
     @Override
     public void validateIssueAccess(Issue issue) {
         Long currentUserServiceId = currentUserService.getCurrentOrganizationId();
+
         if(!currentUserServiceId.equals(issue.getProject().getOrganization().getId())){
             throw new RuntimeException("Access denied");        }
 
@@ -36,6 +37,7 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
     @Override
     public void validateSprintAccess(Sprint sprint) {
         Long currentUserServiceId = currentUserService.getCurrentOrganizationId();
+
         if(!currentUserServiceId.equals(sprint.getProject().getOrganization().getId())){
             throw new RuntimeException("Access denied");        }
     }
