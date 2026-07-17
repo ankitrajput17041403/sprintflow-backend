@@ -1,6 +1,7 @@
 package com.sprintflow.service;
 
 import com.sprintflow.dto.CreateSprintRequest;
+import com.sprintflow.dto.SprintPlanningRequest;
 import com.sprintflow.dto.SprintResponse;
 import com.sprintflow.dto.UpdateSprintRequest;
 
@@ -24,4 +25,6 @@ public interface SprintService {
     SprintResponse startSprint(Long id);
 
     SprintResponse completeSprint(Long id);
+
+    void planSprint(Long sprintId, SprintPlanningRequest request);
 }

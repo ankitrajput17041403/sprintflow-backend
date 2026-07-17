@@ -1,10 +1,7 @@
 package com.sprintflow.controller;
 
 
-import com.sprintflow.dto.CreateSprintRequest;
-import com.sprintflow.dto.IssueResponse;
-import com.sprintflow.dto.SprintResponse;
-import com.sprintflow.dto.UpdateSprintRequest;
+import com.sprintflow.dto.*;
 
 import com.sprintflow.service.IssueService;
 import com.sprintflow.service.SprintService;
@@ -27,7 +24,8 @@ public class SprintController {
     private final IssueService issueService;
 
     @PostMapping
-    public ResponseEntity<SprintResponse> createSprint(@Valid @RequestBody CreateSprintRequest request){
+    public ResponseEntity<SprintResponse> createSprint(
+            @Valid @RequestBody CreateSprintRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(sprintService.createSprint(request));
 
     }
@@ -92,5 +90,14 @@ public class SprintController {
         return ResponseEntity.ok(
                 sprintService.completeSprint(id)
         );
+    }
+    @PutMapping("/{sprintId}/plan")
+    public ResponseEntity<Void> planSprint(
+            @PathVariable Long sprintId,
+            @Valid @RequestBody SprintPlanningRequest request) {
+
+        sprintService.planSprint(sprintId, request);
+
+        return ResponseEntity.noContent().build();
     }
 }

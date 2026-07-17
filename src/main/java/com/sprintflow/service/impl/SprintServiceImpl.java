@@ -1,12 +1,15 @@
 package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.CreateSprintRequest;
+import com.sprintflow.dto.SprintPlanningRequest;
 import com.sprintflow.dto.SprintResponse;
 import com.sprintflow.dto.UpdateSprintRequest;
+import com.sprintflow.entity.Issue;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.Sprint;
 
 import com.sprintflow.enums.SprintStatus;
+import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.service.CurrentUserService;
@@ -16,6 +19,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,6 +30,7 @@ public class SprintServiceImpl implements SprintService {
     private final CurrentUserService currentUserService;
     private final ProjectRepository projectRepository;
     private final OrganizationSecurityService organizationSecurityService;
+    private final IssueRepository issueRepository;
 
     @Override
     public SprintResponse createSprint(CreateSprintRequest request) {
@@ -160,6 +165,32 @@ public class SprintServiceImpl implements SprintService {
         return mapToResponse(sprint);
     }
 
+    @Override
+    public void planSprint(Long sprintId, SprintPlanningRequest request) {
+
+        Sprint sprint = sprintRepository.findById(sprintId)
+                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        for (Long issueId : request.getIssueIds()) {
+
+            Issue issue = issueRepository.findById(issueId)
+                    .orElseThrow(() -> new RuntimeException("Issue not found"));
+
+            organizationSecurityService.validateIssueAccess(issue);
+
+            if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
+                throw new RuntimeException("Issue and Sprint must belong to the same project");
+            }
+
+            List<Issue>  issuesToUpdate = new ArrayList<>();
+            issuesToUpdate.add(issue);
+            issue.setSprint(sprint);
+
+            issueRepository.saveAll(issuesToUpdate);
+        }
+    }
     private SprintResponse mapToResponse(Sprint sprint) {
 
         return new SprintResponse(
