@@ -2,7 +2,7 @@ package com.sprintflow.dto;
 
 
 import com.sprintflow.entity.IssueStatus;
-import com.sprintflow.entity.Priority;
+import com.sprintflow.enums.Priority;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,9 +1,6 @@
 package com.sprintflow.service;
 
-import com.sprintflow.dto.CreateSprintRequest;
-import com.sprintflow.dto.SprintPlanningRequest;
-import com.sprintflow.dto.SprintResponse;
-import com.sprintflow.dto.UpdateSprintRequest;
+import com.sprintflow.dto.*;
 
 import java.util.List;
 
@@ -27,4 +24,6 @@ public interface SprintService {
     SprintResponse completeSprint(Long id);
 
     void planSprint(Long sprintId, SprintPlanningRequest request);
+
+    SprintBoardResponse getSprintBoard(Long sprintId);
 }

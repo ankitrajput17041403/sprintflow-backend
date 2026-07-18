@@ -1,9 +1,6 @@
 package com.sprintflow.service.impl;
 
-import com.sprintflow.dto.CreateSprintRequest;
-import com.sprintflow.dto.SprintPlanningRequest;
-import com.sprintflow.dto.SprintResponse;
-import com.sprintflow.dto.UpdateSprintRequest;
+import com.sprintflow.dto.*;
 import com.sprintflow.entity.Issue;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.Sprint;
@@ -191,6 +188,55 @@ public class SprintServiceImpl implements SprintService {
             issueRepository.saveAll(issuesToUpdate);
         }
     }
+
+    @Override
+    public SprintBoardResponse getSprintBoard(Long sprintId) {
+
+        Sprint sprint = sprintRepository.findById(sprintId)
+                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+
+        organizationSecurityService.validateSprintAccess(sprint);
+
+        List<Issue> issues = issueRepository.findBySprintId(sprintId);
+
+        List<BoardIssueResponse> todo = new ArrayList<>();
+        List<BoardIssueResponse> inProgress = new ArrayList<>();
+        List<BoardIssueResponse> done = new ArrayList<>();
+
+        for (Issue issue : issues) {
+
+            BoardIssueResponse boardIssue = new BoardIssueResponse(
+                    issue.getId(),
+                    issue.getTitle(),
+                    issue.getPriority(),
+                    issue.getStatus()
+            );
+
+            switch (issue.getStatus()) {
+
+                case TODO:
+                    todo.add(boardIssue);
+                    break;
+
+                case IN_PROGRESS:
+                    inProgress.add(boardIssue);
+                    break;
+
+                case DONE:
+                    done.add(boardIssue);
+                    break;
+            }
+        }
+
+        SprintBoardResponse response = new SprintBoardResponse();
+
+        response.setTodo(todo);
+        response.setInProgress(inProgress);
+        response.setDone(done);
+
+        return response;
+    }
+
     private SprintResponse mapToResponse(Sprint sprint) {
 
         return new SprintResponse(

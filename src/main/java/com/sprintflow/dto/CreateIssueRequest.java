@@ -1,7 +1,7 @@
 package com.sprintflow.dto;
 
 import com.sprintflow.entity.IssueStatus;
-import com.sprintflow.entity.Priority;
+import com.sprintflow.enums.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

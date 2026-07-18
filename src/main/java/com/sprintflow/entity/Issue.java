@@ -1,5 +1,6 @@
 package com.sprintflow.entity;
 
+import com.sprintflow.enums.Priority;
 import jakarta.persistence.*;
 import lombok.*;
 

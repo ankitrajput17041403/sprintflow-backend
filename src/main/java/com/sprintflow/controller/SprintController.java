@@ -100,4 +100,11 @@ public class SprintController {
 
         return ResponseEntity.noContent().build();
     }
+
+    //Board
+    @GetMapping("/{sprintId}/board")
+    public ResponseEntity<SprintBoardResponse> getSprintBoard(@PathVariable Long sprintId) {
+
+        return ResponseEntity.ok(sprintService.getSprintBoard(sprintId));
+    }
 }

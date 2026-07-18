@@ -2,17 +2,20 @@ package com.sprintflow.dto;
 
 import com.sprintflow.entity.IssueStatus;
 import com.sprintflow.enums.Priority;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class UpdateIssueRequest {
+public class BoardIssueResponse {
+
+    private Long id;
+
     private String title;
-    private String description;
-    private IssueStatus status;
+
     private Priority priority;
+
+    private IssueStatus issueStatus;
+
 }

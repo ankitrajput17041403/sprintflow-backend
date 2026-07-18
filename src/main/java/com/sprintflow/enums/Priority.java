@@ -1,4 +1,4 @@
-package com.sprintflow.entity;
+package com.sprintflow.enums;
 
 public enum Priority {
 
