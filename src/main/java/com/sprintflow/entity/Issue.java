@@ -48,4 +48,7 @@ public class Issue {
     @ManyToOne
     @JoinColumn(name = "sprint_id")
     private Sprint sprint;
+
+    @Column(nullable = false)
+    private Integer storyPoints = 0;
 }

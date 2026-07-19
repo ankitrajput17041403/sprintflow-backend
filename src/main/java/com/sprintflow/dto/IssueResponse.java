@@ -28,4 +28,6 @@ public class IssueResponse {
     private String projectName;
 
     private String sprintName;
+
+    private Integer storyPoints;
 }

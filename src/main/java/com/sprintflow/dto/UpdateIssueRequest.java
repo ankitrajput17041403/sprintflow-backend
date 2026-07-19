@@ -15,4 +15,6 @@ public class UpdateIssueRequest {
     private String description;
     private IssueStatus status;
     private Priority priority;
+    private Integer storyPoints;
+
 }

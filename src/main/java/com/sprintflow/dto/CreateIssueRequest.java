@@ -22,4 +22,6 @@ public class CreateIssueRequest {
 
     @NotNull(message = "Project Id is required")
     private Long projectId;
+
+    private Integer storyPoints = 0;
 }

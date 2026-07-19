@@ -56,6 +56,9 @@ public class IssueServiceImpl implements IssueService {
         issue.setProject(project);
 
         issue.setCreatedBy(currentUser);
+
+        issue.setStoryPoints(request.getStoryPoints());
+
         issue = issueRepository.save(issue);
 
         return mapToResponse(issue);
@@ -135,6 +138,7 @@ public class IssueServiceImpl implements IssueService {
         issue.setTitle(request.getTitle());
         issue.setDescription(request.getDescription());
         issue.setStatus(request.getStatus());
+        issue.setPriority(request.getPriority());
         issue.setPriority(request.getPriority());
 
         issue = issueRepository.save(issue);
@@ -260,7 +264,9 @@ public class IssueServiceImpl implements IssueService {
                 issue.getProject().getName(),
                 issue.getSprint() != null
                         ? issue.getSprint().getName()
-                        : null
+                        : null,
+                issue.getStoryPoints()
+
         );
     }
 }
