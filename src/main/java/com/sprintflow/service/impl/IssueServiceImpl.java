@@ -1,9 +1,6 @@
 package com.sprintflow.service.impl;
 
-import com.sprintflow.dto.CreateIssueRequest;
-import com.sprintflow.dto.IssueResponse;
-import com.sprintflow.dto.SprintResponse;
-import com.sprintflow.dto.UpdateIssueRequest;
+import com.sprintflow.dto.*;
 import com.sprintflow.entity.*;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
@@ -236,6 +233,20 @@ public class IssueServiceImpl implements IssueService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+    @Override
+    public void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request) {
+
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue not found"));
+
+        organizationSecurityService.validateIssueAccess(issue);
+
+        issue.setStatus(request.getIssueStatus());
+
+        issueRepository.save(issue);
+    }
+
 
     private IssueResponse mapToResponse(Issue issue) {
 

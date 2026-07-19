@@ -3,6 +3,7 @@ package com.sprintflow.controller;
 import com.sprintflow.dto.CreateIssueRequest;
 import com.sprintflow.dto.IssueResponse;
 import com.sprintflow.dto.UpdateIssueRequest;
+import com.sprintflow.dto.UpdateIssueStatusRequest;
 import com.sprintflow.service.IssueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -79,5 +80,15 @@ public class IssueController {
         );
     }
 
+    //Move Status-- means change the status...
+    @PutMapping("/{issueId}/status")
+    public ResponseEntity<Void> updateIssueStatus(
+            @PathVariable Long issueId,
+            @Valid @RequestBody UpdateIssueStatusRequest request) {
+
+        issueService.updateIssueStatus(issueId, request);
+
+        return ResponseEntity.noContent().build();
+    }
 }
 
