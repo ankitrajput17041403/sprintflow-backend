@@ -51,4 +51,11 @@ public class Issue {
 
     @Column(nullable = false)
     private Integer storyPoints = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private User assignedTo;
+
+
+
 }

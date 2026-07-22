@@ -34,4 +34,6 @@ public interface IssueService {
 
     //Meove Issue Status
     void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request);
+
+    IssueResponse assignIssueToUser(Long issueId, Long userId);
 }

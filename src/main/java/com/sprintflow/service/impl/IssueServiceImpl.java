@@ -252,6 +252,28 @@ public class IssueServiceImpl implements IssueService {
     }
 
 
+
+    //Issue and Assigned
+    @Override
+    public IssueResponse assignIssueToUser(Long issueId, Long userId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue not found"));
+
+        organizationSecurityService.validateIssueAccess(issue);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        organizationSecurityService.validateIssueAndUser(issue,user);
+
+        issue.setAssignedTo(user);
+        issueRepository.save(issue);
+
+        return mapToResponse(issue);
+    }
+
+
     private IssueResponse mapToResponse(Issue issue) {
 
         return new IssueResponse(
@@ -265,8 +287,13 @@ public class IssueServiceImpl implements IssueService {
                 issue.getSprint() != null
                         ? issue.getSprint().getName()
                         : null,
-                issue.getStoryPoints()
+                issue.getStoryPoints(),
 
+                issue.getAssignedTo() != null ? issue.getAssignedTo().getId() : null,
+
+                issue.getAssignedTo() != null
+                        ? issue.getAssignedTo().getName()
+                        : null
         );
     }
 }

@@ -30,4 +30,7 @@ public class IssueResponse {
     private String sprintName;
 
     private Integer storyPoints;
+
+    private Long assignedUserId;
+    private String assignedUserName;
 }

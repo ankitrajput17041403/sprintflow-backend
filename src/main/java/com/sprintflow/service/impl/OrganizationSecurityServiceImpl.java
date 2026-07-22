@@ -4,6 +4,7 @@ package com.sprintflow.service.impl;
 import com.sprintflow.entity.Issue;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.Sprint;
+import com.sprintflow.entity.User;
 import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.OrganizationSecurityService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,17 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
             throw new RuntimeException("Access denied");        }
     }
 
+    @Override
+    public void validateIssueAndUser(Issue issue, User user) {
 
+        if (!issue.getProject().getOrganization().getId()
+                .equals(user.getOrganization().getId())) {
 
+            throw new RuntimeException(
+                    "Issue and User must belong to the same organization");
+        }
     }
+
+
+}
 

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -89,6 +90,19 @@ public class IssueController {
         issueService.updateIssueStatus(issueId, request);
 
         return ResponseEntity.noContent().build();
+    }
+
+
+    //Issue and Assigned
+    @PreAuthorize("hasAnyRole('ORG_ADMIN','PROJECT_MANAGER')")
+    @PutMapping("/{issueId}/assign/{userId}")
+    public ResponseEntity<IssueResponse> assignIssueToUser(
+            @PathVariable Long issueId,
+            @PathVariable Long userId) {
+
+        return ResponseEntity.ok(
+                issueService.assignIssueToUser(issueId, userId)
+        );
     }
 }
 
