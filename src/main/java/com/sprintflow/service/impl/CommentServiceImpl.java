@@ -2,6 +2,7 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.CommentResponse;
 import com.sprintflow.dto.CreateCommentRequest;
+import com.sprintflow.dto.UpdateCommentRequest;
 import com.sprintflow.entity.Comment;
 import com.sprintflow.entity.Issue;
 import com.sprintflow.entity.Organization;
@@ -27,36 +28,64 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentResponse createComment(Long issueId, CreateCommentRequest request) {
-        Issue issue = issueRepository.findById(issueId).orElseThrow(()->new RuntimeException("Issue Not Found"));
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new RuntimeException("Issue Not Found"));
 
         organizationSecurityService.validateIssueAccess(issue);
 
-        User currentUser =
-                currentUserService.getCurrentUser();
-
+        User currentUser = currentUserService.getCurrentUser();
 
         Comment comment = new Comment();
         comment.setMessage(request.getMessage());
         comment.setIssue(issue);
         comment.setCreatedBy(currentUser);
-        comment= commentRepository.save(comment);
+        comment = commentRepository.save(comment);
 
-
-
-        return  mapToResponse(comment);
+        return mapToResponse(comment);
     }
 
     @Override
     public List<CommentResponse> getCommentsByIssue(Long issueId) {
-        return List.of();
+
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new RuntimeException("Issue Not Found"));
+
+        organizationSecurityService.validateIssueAccess(issue);
+
+        List<Comment> comments = commentRepository.findByIssueId(issueId);
+        return comments.stream().map(comment -> mapToResponse(comment)).toList();
     }
 
-    public CommentResponse mapToResponse(Comment comment){
-        return new CommentResponse(
-                comment.getId(),
-                comment.getMessage(),
-                comment.getCreatedAt(),
-                comment.getCreatedBy().getName()
-        );
+    @Override
+    public CommentResponse updateComment(Long commentId,
+                                         UpdateCommentRequest request) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() ->
+                        new RuntimeException("Comment Not Found"));
+
+        organizationSecurityService
+                .validateIssueAccess(comment.getIssue());
+
+        organizationSecurityService.validateCommentOwnership(comment);
+
+        comment.setMessage(request.getMessage());
+
+        comment = commentRepository.save(comment);
+
+        return mapToResponse(comment);
+    }
+
+    @Override
+    public CommentResponse deleteComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() ->
+                        new RuntimeException("Comment Not Found"));
+        commentRepository.delete(comment);
+        return mapToResponse(comment);
+
+    }
+
+
+    public CommentResponse mapToResponse(Comment comment) {
+        return new CommentResponse(comment.getId(), comment.getMessage(), comment.getCreatedAt(), comment.getCreatedBy().getName());
     }
 }

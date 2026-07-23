@@ -1,10 +1,8 @@
 package com.sprintflow.service.impl;
 
 
-import com.sprintflow.entity.Issue;
-import com.sprintflow.entity.Project;
-import com.sprintflow.entity.Sprint;
-import com.sprintflow.entity.User;
+import com.sprintflow.entity.*;
+import com.sprintflow.enums.Role;
 import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.OrganizationSecurityService;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +49,21 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
 
             throw new RuntimeException(
                     "Issue and User must belong to the same organization");
+        }
+    }
+
+    @Override
+    public void validateCommentOwnership(Comment comment) {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if (currentUser.getRole() == Role.ORG_ADMIN) {
+            return;
+
+        }
+
+        if (!comment.getCreatedBy().getId().equals(currentUser.getId())) {
+            throw new RuntimeException(
+                    "You can only modify your own comments");
         }
     }
 
