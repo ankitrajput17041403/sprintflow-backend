@@ -1,12 +1,10 @@
 package com.sprintflow.service.impl;
 
+import com.sprintflow.dto.AttachmentResponse;
 import com.sprintflow.dto.CommentResponse;
 import com.sprintflow.dto.CreateCommentRequest;
 import com.sprintflow.dto.UpdateCommentRequest;
-import com.sprintflow.entity.Comment;
-import com.sprintflow.entity.Issue;
-import com.sprintflow.entity.Organization;
-import com.sprintflow.entity.User;
+import com.sprintflow.entity.*;
 import com.sprintflow.repository.CommentRepository;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.service.CommentService;
@@ -89,3 +87,6 @@ public class CommentServiceImpl implements CommentService {
         return new CommentResponse(comment.getId(), comment.getMessage(), comment.getCreatedAt(), comment.getCreatedBy().getName());
     }
 }
+
+
+
