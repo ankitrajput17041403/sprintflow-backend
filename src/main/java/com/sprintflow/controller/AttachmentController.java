@@ -37,8 +37,16 @@ public class AttachmentController {
                 attachmentService.getAttachmentsByIssue(issueId));
     }
 
+    @DeleteMapping("/{attachmentId}")
+    public ResponseEntity<AttachmentResponse> deleteAttachment(
+            @PathVariable Long attachmentId) {
+
+        return ResponseEntity.ok(
+                attachmentService.deleteAttachment(attachmentId)
+        );
+    }
     @GetMapping("/{attachmentId}/download")
-    public ResponseEntity<?> downloadAttachment(
+    public ResponseEntity<Resource> downloadAttachment(
             @PathVariable Long attachmentId) {
 
 
