@@ -3,7 +3,9 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.DashboardResponse;
 import com.sprintflow.dto.RecentIssueResponse;
+import com.sprintflow.dto.SprintProgressResponse;
 import com.sprintflow.entity.IssueStatus;
+import com.sprintflow.entity.Sprint;
 import com.sprintflow.entity.User;
 import com.sprintflow.enums.Priority;
 import com.sprintflow.enums.SprintStatus;
@@ -35,6 +37,44 @@ public class DashboardServiceImpl implements DashboardService {
         Long organizationId = currentUser.getOrganization().getId();
 
 
+        // Sprint Progress
+        SprintProgressResponse sprintProgress = null;
+
+        Sprint activeSprint =sprintRepository.findByProjectOrganizationIdAndStatus(
+                organizationId,
+                SprintStatus.COMPLETED
+        ).orElse(null);
+
+        if (activeSprint != null) {
+
+            Long totalSprintIssues =
+                    issueRepository.countBySprintId(activeSprint.getId());
+
+            Long completedSprintIssues =
+                    issueRepository.countBySprintIdAndStatus(
+                            activeSprint.getId(),
+                            IssueStatus.DONE
+                    );
+
+            Long remainingSprintIssues =
+                    totalSprintIssues - completedSprintIssues;
+
+            Integer progressPercentage =
+                    totalSprintIssues == 0
+                            ? 0
+                            : (int) ((completedSprintIssues * 100.0) / totalSprintIssues);
+
+            sprintProgress = SprintProgressResponse.builder()
+                    .sprintName(activeSprint.getName())
+                    .totalIssues(totalSprintIssues)
+                    .completedIssues(completedSprintIssues)
+                    .remainingIssues(remainingSprintIssues)
+                    .progressPercentage(progressPercentage)
+                    .build();
+        }
+
+
+        //Recent Issues
         List<RecentIssueResponse> recentIssues =
                 issueRepository
                         .findTop5ByProjectOrganizationIdOrderByCreatedAtDesc(organizationId)
@@ -102,7 +142,8 @@ public class DashboardServiceImpl implements DashboardService {
                                 organizationId,
                                 Priority.HIGH
                         )
-                )
+                ).recentIssues(recentIssues)
+                .sprintProgress(sprintProgress)
                 .build();
     }
 

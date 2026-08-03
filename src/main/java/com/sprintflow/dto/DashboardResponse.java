@@ -34,4 +34,6 @@ public class DashboardResponse {
     private Long highPriorityIssues;
 
     private List<RecentIssueResponse> recentIssues;
+
+    private SprintProgressResponse sprintProgress;
 }

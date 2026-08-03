@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface IssueRepository extends JpaRepository<Issue,Long> {
     List<Issue> findByProjectId(Long projectId);
+
     List<Issue> findBySprintId(Long sprintId);
 
 
@@ -18,7 +19,8 @@ public interface IssueRepository extends JpaRepository<Issue,Long> {
     List<Issue> findByProjectIdAndSprintIsNull(Long projectId);
 
     @Query("""
-       SELECT COUNT(i)
+
+            SELECT COUNT(i)
        FROM Issue i
        WHERE i.project.organization.id = :organizationId
        """)
@@ -45,4 +47,10 @@ public interface IssueRepository extends JpaRepository<Issue,Long> {
             @Param("priority") Priority priority);
 
     List<Issue> findTop5ByProjectOrganizationIdOrderByCreatedAtDesc(Long organizationId);
+
+    Long countBySprintId(Long sprintId);
+
+    Long countBySprintIdAndStatus(Long sprintId, IssueStatus status);
+
 }
+
