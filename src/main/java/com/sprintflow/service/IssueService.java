@@ -1,9 +1,6 @@
 package com.sprintflow.service;
 
-import com.sprintflow.dto.CreateIssueRequest;
-import com.sprintflow.dto.IssueResponse;
-import com.sprintflow.dto.UpdateIssueRequest;
-import com.sprintflow.dto.UpdateIssueStatusRequest;
+import com.sprintflow.dto.*;
 import com.sprintflow.entity.Project;
 
 import java.util.List;
@@ -36,4 +33,7 @@ public interface IssueService {
     void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request);
 
     IssueResponse assignIssueToUser(Long issueId, Long userId);
+
+    //Search
+    List<IssueResponse> searchIssues(IssueSearchRequest request);
 }

@@ -1,9 +1,8 @@
 package com.sprintflow.controller;
 
-import com.sprintflow.dto.CreateIssueRequest;
-import com.sprintflow.dto.IssueResponse;
-import com.sprintflow.dto.UpdateIssueRequest;
-import com.sprintflow.dto.UpdateIssueStatusRequest;
+import com.sprintflow.dto.*;
+import com.sprintflow.entity.IssueStatus;
+import com.sprintflow.enums.Priority;
 import com.sprintflow.service.IssueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -104,5 +103,31 @@ public class IssueController {
                 issueService.assignIssueToUser(issueId, userId)
         );
     }
+
+//    //Search
+//    @GetMapping ("/search")
+//    public ResponseEntity<List<IssueResponse>> searchIssues(
+//            @RequestBody IssueSearchRequest request) {
+//
+//        return ResponseEntity.ok(
+//                issueService.searchIssues(request)
+//        );
+//    }
+
+      @GetMapping("/search")
+      public ResponseEntity<List<IssueResponse>> searchIssues(
+        @RequestParam(required = false) IssueStatus status,
+        @RequestParam(required = false) Priority priority,
+        @RequestParam(required = false) Long projectId,
+        @RequestParam(required = false) Long assigneeId) {
+
+         IssueSearchRequest request = new IssueSearchRequest();
+         request.setStatus(status);
+         request.setPriority(priority);
+         request.setProjectId(projectId);
+         request.setAssigneeId(assigneeId);
+
+    return ResponseEntity.ok(issueService.searchIssues(request));
+}
 }
 

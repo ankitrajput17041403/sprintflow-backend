@@ -273,6 +273,44 @@ public class IssueServiceImpl implements IssueService {
         return mapToResponse(issue);
     }
 
+    //Search
+    @Override
+    public List<IssueResponse> searchIssues(IssueSearchRequest request) {
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        Long organizationId = currentUser.getOrganization().getId();
+
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId
+//                ,request.getStatus()
+//        );
+
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId,
+//                request.getStatus(),
+//                request.getPriority()
+//        );
+
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId,
+//                request.getStatus(),
+//                request.getPriority(),
+//                request.getProjectId()
+//        );
+
+
+        List<Issue> issues = issueRepository.searchIssues(
+                organizationId,
+                request.getStatus(),
+                request.getPriority(),
+                request.getProjectId(),
+                request.getAssigneeId()
+        );
+
+        return issues.stream().map(issue -> mapToResponse(issue)).toList();
+    }
+
 
     private IssueResponse mapToResponse(Issue issue) {
 

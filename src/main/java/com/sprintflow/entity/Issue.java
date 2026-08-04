@@ -57,5 +57,4 @@ public class Issue {
     private User assignedTo;
 
 
-
 }
