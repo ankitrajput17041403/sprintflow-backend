@@ -10,6 +10,8 @@ import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.IssueService;
 import com.sprintflow.service.OrganizationSecurityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -273,13 +275,52 @@ public class IssueServiceImpl implements IssueService {
         return mapToResponse(issue);
     }
 
+
     //Search
-    @Override
-    public List<IssueResponse> searchIssues(IssueSearchRequest request) {
+//    @Override
+//    public List<IssueResponse> searchIssues(IssueSearchRequest request) {
+//
+//        User currentUser = currentUserService.getCurrentUser();
+//
+//        Long organizationId = currentUser.getOrganization().getId();
+//
+////        List<Issue> issues = issueRepository.searchIssues(
+////                organizationId
+////                ,request.getStatus()
+////        );
+//
+////        List<Issue> issues = issueRepository.searchIssues(
+////                organizationId,
+////                request.getStatus(),
+////                request.getPriority()
+////        );
+//
+////        List<Issue> issues = issueRepository.searchIssues(
+////                organizationId,
+////                request.getStatus(),
+////                request.getPriority(),
+////                request.getProjectId()
+////        );
+//
+//
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId,
+//                request.getStatus(),
+//                request.getPriority(),
+//                request.getProjectId(),
+//                request.getAssigneeId()
+//        );
+//
+//        return issues.stream().map(issue -> mapToResponse(issue)).toList();
+//    }
 
-        User currentUser = currentUserService.getCurrentUser();
 
-        Long organizationId = currentUser.getOrganization().getId();
+@Override
+public Page<IssueResponse> searchIssues(IssueSearchRequest request,Pageable pageable) {
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    Long organizationId = currentUser.getOrganization().getId();
 
 //        List<Issue> issues = issueRepository.searchIssues(
 //                organizationId
@@ -300,17 +341,18 @@ public class IssueServiceImpl implements IssueService {
 //        );
 
 
-        List<Issue> issues = issueRepository.searchIssues(
-                organizationId,
-                request.getStatus(),
-                request.getPriority(),
-                request.getProjectId(),
-                request.getAssigneeId()
-        );
+    Page<Issue> issues = issueRepository.searchIssues(
+            organizationId,
+            request.getStatus(),
+            request.getPriority(),
+            request.getProjectId(),
+            request.getAssigneeId(),
+            pageable
+    );
 
-        return issues.stream().map(issue -> mapToResponse(issue)).toList();
-    }
-
+    //return issues.stream().map(issue -> mapToResponse(issue)).toList();
+    return issues.map(issue -> mapToResponse(issue));
+}
 
     private IssueResponse mapToResponse(Issue issue) {
 

@@ -6,6 +6,8 @@ import com.sprintflow.enums.Priority;
 import com.sprintflow.service.IssueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -113,21 +115,47 @@ public class IssueController {
 //                issueService.searchIssues(request)
 //        );
 //    }
+//
+//      @GetMapping("/search")
+//      public ResponseEntity<List<IssueResponse>> searchIssues(
+//              @RequestParam(required = false) IssueStatus status,
+//              @RequestParam(required = false) Priority priority,
+//              @RequestParam(required = false) Long projectId,
+//              @RequestParam(required = false) Long assigneeId) {
+//
+//         IssueSearchRequest request = new IssueSearchRequest();
+//         request.setStatus(status);
+//         request.setPriority(priority);
+//         request.setProjectId(projectId);
+//         request.setAssigneeId(assigneeId);
+//
+//         return ResponseEntity.ok(issueService.searchIssues(request));
+//      }
 
-      @GetMapping("/search")
-      public ResponseEntity<List<IssueResponse>> searchIssues(
-        @RequestParam(required = false) IssueStatus status,
-        @RequestParam(required = false) Priority priority,
-        @RequestParam(required = false) Long projectId,
-        @RequestParam(required = false) Long assigneeId) {
 
-         IssueSearchRequest request = new IssueSearchRequest();
-         request.setStatus(status);
-         request.setPriority(priority);
-         request.setProjectId(projectId);
-         request.setAssigneeId(assigneeId);
+    @GetMapping("/search")
+    public ResponseEntity<Page<IssueResponse>> searchIssues(
 
-    return ResponseEntity.ok(issueService.searchIssues(request));
-}
+            @RequestParam(required = false) IssueStatus status,
+
+            @RequestParam(required = false) Priority priority,
+
+            @RequestParam(required = false) Long projectId,
+
+            @RequestParam(required = false) Long assigneeId,
+
+            Pageable pageable
+    ) {
+
+        IssueSearchRequest request = new IssueSearchRequest();
+        request.setStatus(status);
+        request.setPriority(priority);
+        request.setProjectId(projectId);
+        request.setAssigneeId(assigneeId);
+
+        return ResponseEntity.ok(
+                issueService.searchIssues(request, pageable)
+        );
+    }
 }
 

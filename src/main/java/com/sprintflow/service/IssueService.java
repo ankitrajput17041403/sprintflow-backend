@@ -1,7 +1,9 @@
 package com.sprintflow.service;
 
 import com.sprintflow.dto.*;
-import com.sprintflow.entity.Project;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 import java.util.List;
 
@@ -35,5 +37,8 @@ public interface IssueService {
     IssueResponse assignIssueToUser(Long issueId, Long userId);
 
     //Search
-    List<IssueResponse> searchIssues(IssueSearchRequest request);
+    //List<IssueResponse> searchIssues(IssueSearchRequest request);
+
+    //Pageable
+    Page<IssueResponse> searchIssues(IssueSearchRequest request, Pageable pageable);
 }
