@@ -1,46 +1,44 @@
 package com.sprintflow.entity;
 
+import com.sprintflow.enums.ActivityAction;
+
 import jakarta.persistence.*;
 import lombok.*;
+
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "activities")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Comment {
+public class Activity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String message;
+    @Enumerated(EnumType.STRING)
+    private ActivityAction action;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id")
     private Issue issue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    private User createdBy;
+    @JoinColumn(name = "performed_by")
+    private User performedBy;
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 }

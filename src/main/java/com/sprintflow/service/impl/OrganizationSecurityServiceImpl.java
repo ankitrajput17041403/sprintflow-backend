@@ -58,7 +58,6 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
 
         if (currentUser.getRole() == Role.ORG_ADMIN) {
             return;
-
         }
 
         if (!comment.getCreatedBy().getId().equals(currentUser.getId())) {
@@ -66,7 +65,6 @@ public class OrganizationSecurityServiceImpl implements OrganizationSecurityServ
                     "You can only modify your own comments");
         }
     }
-
 
 }
 

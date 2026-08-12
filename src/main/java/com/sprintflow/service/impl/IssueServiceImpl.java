@@ -2,10 +2,12 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.*;
 import com.sprintflow.entity.*;
+import com.sprintflow.enums.ActivityAction;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.repository.UserRepository;
+import com.sprintflow.service.ActivityService;
 import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.IssueService;
 import com.sprintflow.service.OrganizationSecurityService;
@@ -26,6 +28,7 @@ public class IssueServiceImpl implements IssueService {
     private final ProjectRepository projectRepository;
     private final OrganizationSecurityService organizationSecurityService;
     private final SprintRepository sprintRepository;
+    private final ActivityService activityService;
 
 
 
@@ -141,9 +144,12 @@ public class IssueServiceImpl implements IssueService {
         issue.setDescription(request.getDescription());
         issue.setStatus(request.getStatus());
         issue.setPriority(request.getPriority());
-        issue.setPriority(request.getPriority());
+        issue.setStoryPoints(request.getStoryPoints());
+
 
         issue = issueRepository.save(issue);
+
+        activityService.logActivity(issue,currentUser,ActivityAction.UPDATED,"Issue Updated");
 
         return mapToResponse(issue);
     }
@@ -183,8 +189,7 @@ public class IssueServiceImpl implements IssueService {
 
          organizationSecurityService.validateSprintAccess(sprint);
 
-        System.out.println("This is Issue Proejct Id--"+issue.getProject().getId());
-        System.out.println("This is Sprint Proejct Id--"+sprint.getProject().getId());
+
 
 
         if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
@@ -193,6 +198,13 @@ public class IssueServiceImpl implements IssueService {
 
         issue.setSprint(sprint);
         issueRepository.save(issue);
+
+        activityService.logActivity(
+                issue,
+                currentUserService.getCurrentUser(),
+                ActivityAction.SPRINT_ASSIGNED,
+                "Issue assigned to sprint " + sprint.getName()
+        );
 
         return mapToResponse(issue);
     }
@@ -209,16 +221,27 @@ public class IssueServiceImpl implements IssueService {
         return issues.stream().map(issue -> mapToResponse(issue))
                 .toList();
     }
-
     @Override
     public IssueResponse removeIssueFromSprint(Long issueId) {
+
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(()->
+                .orElseThrow(() ->
                         new RuntimeException("Issue Not Found"));
 
         organizationSecurityService.validateIssueAccess(issue);
+
+        Sprint oldSprint = issue.getSprint();
+
         issue.setSprint(null);
+
         issueRepository.save(issue);
+
+        activityService.logActivity(
+                issue,
+                currentUserService.getCurrentUser(),
+                ActivityAction.SPRINT_REMOVED,
+                "Issue removed from sprint " + oldSprint.getName()
+        );
 
         return mapToResponse(issue);
     }
@@ -240,6 +263,20 @@ public class IssueServiceImpl implements IssueService {
                 .toList();
     }
 
+//    @Override
+//    public void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request) {
+//
+//        Issue issue = issueRepository.findById(issueId)
+//                .orElseThrow(() -> new RuntimeException("Issue not found"));
+//
+//        organizationSecurityService.validateIssueAccess(issue);
+//
+//        issue.setStatus(request.getIssueStatus());
+//
+//        issueRepository.save(issue);
+//    }
+
+
     @Override
     public void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request) {
 
@@ -248,11 +285,20 @@ public class IssueServiceImpl implements IssueService {
 
         organizationSecurityService.validateIssueAccess(issue);
 
+        IssueStatus oldStatus = issue.getStatus();
+
         issue.setStatus(request.getIssueStatus());
 
         issueRepository.save(issue);
-    }
 
+        activityService.logActivity(
+                issue,
+                currentUserService.getCurrentUser(),
+                ActivityAction.STATUS_CHANGED,
+                "Status changed from " + oldStatus
+                        + " to " + request.getIssueStatus()
+        );
+    }
 
 
     //Issue and Assigned
@@ -272,11 +318,19 @@ public class IssueServiceImpl implements IssueService {
         issue.setAssignedTo(user);
         issueRepository.save(issue);
 
+        activityService.logActivity(
+                issue,
+                currentUserService.getCurrentUser(),
+                ActivityAction.ASSIGNED,
+                "Assigned issue to " + user.getName()
+        );
+
         return mapToResponse(issue);
     }
 
 
-    //Search
+
+    // Search
 //    @Override
 //    public List<IssueResponse> searchIssues(IssueSearchRequest request) {
 //
@@ -284,23 +338,23 @@ public class IssueServiceImpl implements IssueService {
 //
 //        Long organizationId = currentUser.getOrganization().getId();
 //
-////        List<Issue> issues = issueRepository.searchIssues(
-////                organizationId
-////                ,request.getStatus()
-////        );
+//        List<Issue> issues = issueRepository.searchIssues(
+//            organizationId
+//                ,request.getStatus()
+//        );
 //
-////        List<Issue> issues = issueRepository.searchIssues(
-////                organizationId,
-////                request.getStatus(),
-////                request.getPriority()
-////        );
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId,
+//                request.getStatus(),
+//                request.getPriority()
+//        );
 //
-////        List<Issue> issues = issueRepository.searchIssues(
-////                organizationId,
-////                request.getStatus(),
-////                request.getPriority(),
-////                request.getProjectId()
-////        );
+//        List<Issue> issues = issueRepository.searchIssues(
+//                organizationId,
+//                request.getStatus(),
+//                request.getPriority(),
+//                request.getProjectId()
+//        );
 //
 //
 //        List<Issue> issues = issueRepository.searchIssues(
