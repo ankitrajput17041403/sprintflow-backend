@@ -2,6 +2,7 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.*;
 import com.sprintflow.entity.Issue;
+import com.sprintflow.entity.IssueStatus;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.Sprint;
 
@@ -149,16 +150,37 @@ public class SprintServiceImpl implements SprintService {
 
     @Override
     public SprintResponse completeSprint(Long id) {
+
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Sprint not found"));
+
         organizationSecurityService.validateSprintAccess(sprint);
 
         if (sprint.getStatus() != SprintStatus.ACTIVE) {
-            throw new RuntimeException("Only active sprint can be completed");
+            throw new RuntimeException(
+                    "Only active sprint can be completed");
         }
+
+        // Get all issues belonging to this sprint
+        List<Issue> issues =
+                issueRepository.findBySprintId(sprint.getId());
+
+        // Move unfinished issues back to backlog
+        for (Issue issue : issues) {
+
+            if (issue.getStatus() != com.sprintflow.entity.IssueStatus.DONE) {
+                issue.setSprint(null);
+            }
+        }
+
+        issueRepository.saveAll(issues);
+
+        // Complete the sprint
         sprint.setStatus(SprintStatus.COMPLETED);
+
         sprintRepository.save(sprint);
+
         return mapToResponse(sprint);
     }
 

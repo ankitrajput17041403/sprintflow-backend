@@ -46,6 +46,15 @@ public class IssueController {
                 issueService.getIssueById(id));
     }
 
+    @GetMapping("/sprint/{sprintId}")
+    public ResponseEntity<List<IssueResponse>> getIssuesBySprint(
+            @PathVariable Long sprintId) {
+
+        return ResponseEntity.ok(
+                issueService.getIssuesBySprint(sprintId)
+        );
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<IssueResponse> updateIssue(
             @PathVariable Long id,
@@ -103,6 +112,16 @@ public class IssueController {
 
         return ResponseEntity.ok(
                 issueService.assignIssueToUser(issueId, userId)
+        );
+    }
+
+
+    @GetMapping("/project/{projectId}/backlog")
+    public ResponseEntity<List<IssueResponse>> getBacklogIssues(
+            @PathVariable Long projectId) {
+
+        return ResponseEntity.ok(
+                issueService.getBacklogIssues(projectId)
         );
     }
 
