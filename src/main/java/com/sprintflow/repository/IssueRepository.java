@@ -130,5 +130,12 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
             @Param("assigneeId") Long assigneeId,
             Pageable pageable
     );
+
+
+    Long countByProjectId(Long projectId);
+
+    Long countByProjectIdAndStatus(
+            Long projectId,
+            IssueStatus status);
 }
 

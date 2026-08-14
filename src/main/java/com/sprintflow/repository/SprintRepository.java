@@ -1,6 +1,6 @@
 package com.sprintflow.repository;
 
-import com.sprintflow.entity.Issue;
+
 import com.sprintflow.entity.Sprint;
 import com.sprintflow.enums.SprintStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +29,10 @@ public interface SprintRepository extends JpaRepository<Sprint, Long> {
             Long organizationId,
             SprintStatus status
     );
+
+    Long countByProjectId(Long projectId);
+
+    Long countByProjectIdAndStatus(
+            Long projectId,
+            SprintStatus status);
 }
