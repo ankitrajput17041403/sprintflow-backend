@@ -7,10 +7,7 @@ import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.repository.UserRepository;
-import com.sprintflow.service.ActivityService;
-import com.sprintflow.service.CurrentUserService;
-import com.sprintflow.service.IssueService;
-import com.sprintflow.service.OrganizationSecurityService;
+import com.sprintflow.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +26,7 @@ public class IssueServiceImpl implements IssueService {
     private final OrganizationSecurityService organizationSecurityService;
     private final SprintRepository sprintRepository;
     private final ActivityService activityService;
+    private final NotificationService notificationService;
 
 
 
@@ -317,6 +315,9 @@ public class IssueServiceImpl implements IssueService {
 
         issue.setAssignedTo(user);
         issueRepository.save(issue);
+
+        notificationService.createNotification(user,
+                 "You were asigned to "+issue.getTitle());
 
         activityService.logActivity(
                 issue,
