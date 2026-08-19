@@ -167,8 +167,7 @@ public class SprintServiceImpl implements SprintService {
             System.out.println("AssignedUser--------"+assignedUser.getId());
             System.out.println("Sprint Get Name------"+issue.getSprint().getName());
 
-            if (assignedUser != null
-                    && notifiedUserIds.add(assignedUser.getId())) {
+            if (assignedUser != null && notifiedUserIds.add(assignedUser.getId())) {
 
                 notificationService.createNotification(
                         assignedUser,

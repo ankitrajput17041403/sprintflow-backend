@@ -27,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         List<Notification> notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(currentUser.getId());
 
+        System.out.println("notifications--------"+notifications);
         return notifications.stream().map(notific->mapToResponse(notific)).toList();
     }
 
