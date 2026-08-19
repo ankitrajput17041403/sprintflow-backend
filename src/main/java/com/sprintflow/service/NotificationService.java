@@ -13,4 +13,4 @@ public interface NotificationService {
     void markAsRead(Long notificationId);
 
     void createNotification(User recipient, String message);
-}
+    Long getUnreadCount();}

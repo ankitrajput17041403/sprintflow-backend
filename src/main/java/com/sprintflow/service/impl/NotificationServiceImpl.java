@@ -60,7 +60,14 @@ public class NotificationServiceImpl implements NotificationService {
 
         System.out.println("===== NOTIFICATION SAVED =====");
     }
+    @Override
+    public Long getUnreadCount() {
 
+        User currentUser = currentUserService.getCurrentUser();
+
+        return notificationRepository
+                .countByRecipientIdAndReadFalse(currentUser.getId());
+    }
 
 
     private NotificationResponse mapToResponse(

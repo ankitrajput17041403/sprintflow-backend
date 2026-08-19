@@ -11,4 +11,5 @@ public interface NotificationRepository
     List<Notification> findByRecipientIdOrderByCreatedAtDesc(
             Long recipientId
     );
+    long countByRecipientIdAndReadFalse(Long recipientId);
 }

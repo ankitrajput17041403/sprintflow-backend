@@ -1,16 +1,15 @@
 package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.*;
-import com.sprintflow.entity.Issue;
-import com.sprintflow.entity.IssueStatus;
-import com.sprintflow.entity.Project;
-import com.sprintflow.entity.Sprint;
+import com.sprintflow.entity.*;
 
 import com.sprintflow.enums.SprintStatus;
 import com.sprintflow.repository.IssueRepository;
+
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.service.CurrentUserService;
+import com.sprintflow.service.NotificationService;
 import com.sprintflow.service.OrganizationSecurityService;
 import com.sprintflow.service.SprintService;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -29,6 +30,7 @@ public class SprintServiceImpl implements SprintService {
     private final ProjectRepository projectRepository;
     private final OrganizationSecurityService organizationSecurityService;
     private final IssueRepository issueRepository;
+    private final NotificationService notificationService;
 
     @Override
     public SprintResponse createSprint(CreateSprintRequest request) {
@@ -134,16 +136,48 @@ public class SprintServiceImpl implements SprintService {
                         new RuntimeException("Sprint not found"));
         organizationSecurityService.validateSprintAccess(sprint);
 
+        System.out.println("sprint status----"+sprint.getStatus());
+
         if (sprint.getStatus() != SprintStatus.PLANNED) {
             throw new RuntimeException("Only planned sprint can be started");
         }
         if (sprintRepository.existsByProjectIdAndStatus(sprint.getProject().getId(), SprintStatus.ACTIVE)) {
-
-            throw new RuntimeException(
-                    "Project already has an active sprint");
+            throw new RuntimeException("Project already has an active sprint");
         }
         sprint.setStatus(SprintStatus.ACTIVE);
         sprintRepository.save(sprint);
+
+        Set<Long> notifiedUserIds = new HashSet<>();
+
+        List<Issue> issues =
+                issueRepository.findBySprintId(sprint.getId());
+        if (issues.isEmpty()) {
+            throw new RuntimeException(
+                    "No issues are assigned to this sprint Then Notification Not Created !!!");
+        }
+
+        System.out.println("ListOfIssues---"+issues);
+
+        for (Issue issue : issues) {
+
+            User assignedUser = issue.getAssignedTo();
+            if(assignedUser== null){
+                throw  new RuntimeException("Issue Not Asigned To any One It is Null Then Notification Not Created !!!");
+            }
+            System.out.println("AssignedUser--------"+assignedUser.getId());
+            System.out.println("Sprint Get Name------"+issue.getSprint().getName());
+
+            if (assignedUser != null
+                    && notifiedUserIds.add(assignedUser.getId())) {
+
+                notificationService.createNotification(
+                        assignedUser,
+                        sprint.getName() + "has started"
+                );
+            }
+        }
+
+
         return mapToResponse(sprint);
 
     }
@@ -169,7 +203,7 @@ public class SprintServiceImpl implements SprintService {
         // Move unfinished issues back to backlog
         for (Issue issue : issues) {
 
-            if (issue.getStatus() != com.sprintflow.entity.IssueStatus.DONE) {
+            if (issue.getStatus() != IssueStatus.DONE) {
                 issue.setSprint(null);
             }
         }
@@ -181,9 +215,25 @@ public class SprintServiceImpl implements SprintService {
 
         sprintRepository.save(sprint);
 
+        // Notify unique assigned users
+        Set<Long> notifiedUserIds = new HashSet<>();
+
+        for (Issue issue : issues) {
+
+            User assignedUser = issue.getAssignedTo();
+
+            if (assignedUser != null
+                    && notifiedUserIds.add(assignedUser.getId())) {
+
+                notificationService.createNotification(
+                        assignedUser,
+                        sprint.getName() + " has been completed"
+                );
+            }
+        }
+
         return mapToResponse(sprint);
     }
-
     @Override
     public void planSprint(Long sprintId, SprintPlanningRequest request) {
 

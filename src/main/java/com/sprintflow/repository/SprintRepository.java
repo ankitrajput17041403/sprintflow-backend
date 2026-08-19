@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface SprintRepository extends JpaRepository<Sprint, Long> {
 
     List<Sprint> findByProjectId(Long projectId);
+
     boolean existsByProjectIdAndStatus(Long projectId, SprintStatus status);
 
     @Query("""

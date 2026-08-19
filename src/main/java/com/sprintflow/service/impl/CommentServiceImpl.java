@@ -8,10 +8,7 @@ import com.sprintflow.entity.*;
 import com.sprintflow.enums.ActivityAction;
 import com.sprintflow.repository.CommentRepository;
 import com.sprintflow.repository.IssueRepository;
-import com.sprintflow.service.ActivityService;
-import com.sprintflow.service.CommentService;
-import com.sprintflow.service.CurrentUserService;
-import com.sprintflow.service.OrganizationSecurityService;
+import com.sprintflow.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +22,7 @@ public class CommentServiceImpl implements CommentService {
     private final CurrentUserService currentUserService;
     private final CommentRepository commentRepository;
     private final ActivityService activityService;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -40,6 +38,24 @@ public class CommentServiceImpl implements CommentService {
         comment.setIssue(issue);
         comment.setCreatedBy(currentUser);
         comment = commentRepository.save(comment);
+
+
+        System.out.println("===== COMMENT CREATED =====");
+        System.out.println("Issue Creator ID: "
+                + issue.getCreatedBy().getId());
+        System.out.println("Current User ID: "
+                + currentUser.getId());
+
+        if (!issue.getCreatedBy().getId()
+                .equals(currentUser.getId())) {
+
+            System.out.println("===== CREATING COMMENT NOTIFICATION =====");
+
+            notificationService.createNotification(
+                    issue.getCreatedBy(),
+                    "New comment on issue: " + issue.getTitle()
+            );
+        }
 
         activityService.logActivity(
                 issue,
@@ -117,7 +133,11 @@ public class CommentServiceImpl implements CommentService {
 
 
     public CommentResponse mapToResponse(Comment comment) {
-        return new CommentResponse(comment.getId(), comment.getMessage(), comment.getCreatedAt(), comment.getCreatedBy().getName());
+        return new CommentResponse(
+                comment.getId(),
+                comment.getMessage(),
+                comment.getCreatedAt(),
+                comment.getCreatedBy().getName());
     }
 }
 
