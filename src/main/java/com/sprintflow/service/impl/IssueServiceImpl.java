@@ -3,6 +3,8 @@ package com.sprintflow.service.impl;
 import com.sprintflow.dto.*;
 import com.sprintflow.entity.*;
 import com.sprintflow.enums.ActivityAction;
+import com.sprintflow.exception.AccessDeniedException;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
@@ -42,7 +44,7 @@ public class IssueServiceImpl implements IssueService {
         Project project = projectRepository.findById(
                         request.getProjectId())
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+                        new ResourceNotFoundException("ISSUE NOT FOUND"));
         if (!organization.getId().equals(project.getOrganization().getId())) {
             throw new RuntimeException("Access denied");
         }
@@ -104,15 +106,14 @@ public class IssueServiceImpl implements IssueService {
 
         Issue issue =
                 issueRepository.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException("Issue not found"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Issue not found"));
 
 //        Project project = projectRepository.findById(id)
 //                .orElseThrow(() ->
 //                        new RuntimeException("Project not found"));
 
         if (!organization.getId().equals(issue.getProject().getOrganization().getId())) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         return mapToResponse(issue);
@@ -135,7 +136,7 @@ public class IssueServiceImpl implements IssueService {
         if (!organizationId.equals(
                 issue.getProject().getOrganization().getId())) {
 
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         issue.setTitle(request.getTitle());
