@@ -4,6 +4,7 @@ import com.sprintflow.dto.*;
 import com.sprintflow.entity.*;
 import com.sprintflow.enums.ActivityAction;
 import com.sprintflow.exception.AccessDeniedException;
+import com.sprintflow.exception.BusinessException;
 import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.repository.ProjectRepository;
@@ -31,37 +32,36 @@ public class IssueServiceImpl implements IssueService {
     private final NotificationService notificationService;
 
 
-
     @Override
     public IssueResponse createIssue(CreateIssueRequest request) {
-
 
         User currentUser =
                 currentUserService.getCurrentUser();
 
-        Organization organization = currentUser.getOrganization();
+        Organization organization =
+                currentUser.getOrganization();
 
         Project project = projectRepository.findById(
                         request.getProjectId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("ISSUE NOT FOUND"));
-        if (!organization.getId().equals(project.getOrganization().getId())) {
-            throw new RuntimeException("Access denied");
+                        new ResourceNotFoundException(
+                                "Project not found"));
+
+        if (!organization.getId()
+                .equals(project.getOrganization().getId())) {
+
+            throw new AccessDeniedException(
+                    "Access denied");
         }
 
         Issue issue = new Issue();
+
         issue.setTitle(request.getTitle());
-
         issue.setDescription(request.getDescription());
-
         issue.setStatus(request.getStatus());
-
         issue.setPriority(request.getPriority());
-
         issue.setProject(project);
-
         issue.setCreatedBy(currentUser);
-
         issue.setStoryPoints(request.getStoryPoints());
 
         issue = issueRepository.save(issue);
@@ -70,73 +70,93 @@ public class IssueServiceImpl implements IssueService {
     }
 
 
-
     @Override
     public List<IssueResponse> getAllIssues(Long projectId) {
 
-        User currentUser =currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
 
         Organization organization =
                 currentUser.getOrganization();
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+                        new ResourceNotFoundException(
+                                "Project not found"));
 
-        if (!organization.getId().equals(project.getOrganization().getId())) {
-            throw new RuntimeException("Access denied");
+        if (!organization.getId()
+                .equals(project.getOrganization().getId())) {
+
+            throw new AccessDeniedException(
+                    "Access denied");
         }
 
         List<Issue> issues =
                 issueRepository.findByProjectId(projectId);
 
         return issues.stream()
-                .map(issue -> mapToResponse(issue)).toList();
+                .map(issue -> mapToResponse(issue))
+                .toList();
     }
+
 
     @Override
     public IssueResponse getIssueById(Long id) {
+
 //        User currentUser = userRepository.findById(1L)
 //                .orElseThrow(() ->
 //                        new RuntimeException("User not found"));
 
-        User currentUser =currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
+
         Organization organization =
                 currentUser.getOrganization();
 
         Issue issue =
                 issueRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("Issue not found"));
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Issue not found"));
 
 //        Project project = projectRepository.findById(id)
 //                .orElseThrow(() ->
 //                        new RuntimeException("Project not found"));
 
-        if (!organization.getId().equals(issue.getProject().getOrganization().getId())) {
-            throw new AccessDeniedException("Access denied");
+        if (!organization.getId()
+                .equals(issue.getProject()
+                        .getOrganization().getId())) {
+
+            throw new AccessDeniedException(
+                    "Access denied");
         }
 
         return mapToResponse(issue);
     }
+
 
     @Override
     public IssueResponse updateIssue(
             Long id,
             UpdateIssueRequest request) {
 
-        User currentUser =currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
 
         Long organizationId =
                 currentUser.getOrganization().getId();
 
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Issue not found"));
+                        new ResourceNotFoundException(
+                                "Issue not found"));
 
         if (!organizationId.equals(
-                issue.getProject().getOrganization().getId())) {
+                issue.getProject()
+                        .getOrganization().getId())) {
 
-            throw new AccessDeniedException("Access denied");
+            throw new AccessDeniedException(
+                    "Access denied");
         }
 
         issue.setTitle(request.getTitle());
@@ -145,89 +165,123 @@ public class IssueServiceImpl implements IssueService {
         issue.setPriority(request.getPriority());
         issue.setStoryPoints(request.getStoryPoints());
 
-
         issue = issueRepository.save(issue);
 
-        activityService.logActivity(issue,currentUser,ActivityAction.UPDATED,"Issue Updated");
+        activityService.logActivity(
+                issue,
+                currentUser,
+                ActivityAction.UPDATED,
+                "Issue Updated"
+        );
 
         return mapToResponse(issue);
     }
 
+
     @Override
     public IssueResponse deleteIssue(Long id) {
-        User currentUser =currentUserService.getCurrentUser();
+
+        User currentUser =
+                currentUserService.getCurrentUser();
 
         Long organizationId =
                 currentUser.getOrganization().getId();
 
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Issue not found"));
+                        new ResourceNotFoundException(
+                                "Issue not found"));
 
         if (!organizationId.equals(
-                issue.getProject().getOrganization().getId())) {
+                issue.getProject()
+                        .getOrganization().getId())) {
 
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException(
+                    "Access denied");
         }
+
         issueRepository.delete(issue);
-         return mapToResponse(issue);
 
-
+        return mapToResponse(issue);
     }
 
+
     @Override
-    public IssueResponse assignIssueToSprint(Long issueId, Long sprintId) {
+    public IssueResponse assignIssueToSprint(
+            Long issueId,
+            Long sprintId) {
+
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() ->
-                        new RuntimeException("Issue not found"));
+                        new ResourceNotFoundException(
+                                "Issue not found"));
 
-        organizationSecurityService.validateIssueAccess(issue);
-         Sprint sprint = sprintRepository.findById(sprintId)
-                 .orElseThrow(()->
-                         new RuntimeException("Sprint Not Found"));
+        organizationSecurityService
+                .validateIssueAccess(issue);
 
-         organizationSecurityService.validateSprintAccess(sprint);
+        Sprint sprint = sprintRepository.findById(sprintId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Sprint not found"));
 
+        organizationSecurityService
+                .validateSprintAccess(sprint);
 
+        if (!issue.getProject().getId()
+                .equals(sprint.getProject().getId())) {
 
-
-        if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
-            throw new RuntimeException("Issue and Sprint must belong to the same project");
+            throw new BusinessException(
+                    "Issue and Sprint must belong to the same project");
         }
 
         issue.setSprint(sprint);
+
         issueRepository.save(issue);
 
         activityService.logActivity(
                 issue,
                 currentUserService.getCurrentUser(),
                 ActivityAction.SPRINT_ASSIGNED,
-                "Issue assigned to sprint " + sprint.getName()
+                "Issue assigned to sprint "
+                        + sprint.getName()
         );
 
         return mapToResponse(issue);
     }
 
+
     @Override
-    public List<IssueResponse> getIssuesBySprint(Long sprintId) {
+    public List<IssueResponse> getIssuesBySprint(
+            Long sprintId) {
+
         Sprint sprint = sprintRepository.findById(sprintId)
-                .orElseThrow(()->
-                        new RuntimeException("Sprint Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Sprint not found"));
 
-        organizationSecurityService.validateSprintAccess(sprint);
+        organizationSecurityService
+                .validateSprintAccess(sprint);
 
-        List<Issue> issues = issueRepository.findBySprintId(sprintId);
-        return issues.stream().map(issue -> mapToResponse(issue))
+        List<Issue> issues =
+                issueRepository.findBySprintId(sprintId);
+
+        return issues.stream()
+                .map(issue -> mapToResponse(issue))
                 .toList();
     }
+
+
     @Override
-    public IssueResponse removeIssueFromSprint(Long issueId) {
+    public IssueResponse removeIssueFromSprint(
+            Long issueId) {
 
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() ->
-                        new RuntimeException("Issue Not Found"));
+                        new ResourceNotFoundException(
+                                "Issue not found"));
 
-        organizationSecurityService.validateIssueAccess(issue);
+        organizationSecurityService
+                .validateIssueAccess(issue);
 
         Sprint oldSprint = issue.getSprint();
 
@@ -239,34 +293,45 @@ public class IssueServiceImpl implements IssueService {
                 issue,
                 currentUserService.getCurrentUser(),
                 ActivityAction.SPRINT_REMOVED,
-                "Issue removed from sprint " + oldSprint.getName()
+                "Issue removed from sprint "
+                        + oldSprint.getName()
         );
 
         return mapToResponse(issue);
     }
 
+
     @Override
-    public List<IssueResponse> getBacklogIssues(Long projectId) {
+    public List<IssueResponse> getBacklogIssues(
+            Long projectId) {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+                        new ResourceNotFoundException(
+                                "Project not found"));
 
-        organizationSecurityService.validateProjectAccess(project);
+        organizationSecurityService
+                .validateProjectAccess(project);
 
         List<Issue> issues =
-                issueRepository.findByProjectIdAndSprintIsNull(projectId);
+                issueRepository
+                        .findByProjectIdAndSprintIsNull(
+                                projectId);
 
         return issues.stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+
 //    @Override
-//    public void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request) {
+//    public void updateIssueStatus(
+//            Long issueId,
+//            UpdateIssueStatusRequest request) {
 //
 //        Issue issue = issueRepository.findById(issueId)
-//                .orElseThrow(() -> new RuntimeException("Issue not found"));
+//                .orElseThrow(() ->
+//                        new RuntimeException("Issue not found"));
 //
 //        organizationSecurityService.validateIssueAccess(issue);
 //
@@ -277,16 +342,23 @@ public class IssueServiceImpl implements IssueService {
 
 
     @Override
-    public void updateIssueStatus(Long issueId, UpdateIssueStatusRequest request) {
+    public void updateIssueStatus(
+            Long issueId,
+            UpdateIssueStatusRequest request) {
 
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Issue not found"));
 
-        organizationSecurityService.validateIssueAccess(issue);
+        organizationSecurityService
+                .validateIssueAccess(issue);
 
-        IssueStatus oldStatus = issue.getStatus();
+        IssueStatus oldStatus =
+                issue.getStatus();
 
-        issue.setStatus(request.getIssueStatus());
+        issue.setStatus(
+                request.getIssueStatus());
 
         issueRepository.save(issue);
 
@@ -294,55 +366,70 @@ public class IssueServiceImpl implements IssueService {
                 issue,
                 currentUserService.getCurrentUser(),
                 ActivityAction.STATUS_CHANGED,
-                "Status changed from " + oldStatus
-                        + " to " + request.getIssueStatus()
+                "Status changed from "
+                        + oldStatus
+                        + " to "
+                        + request.getIssueStatus()
         );
     }
 
 
-    //Issue and Assigned
+    // Issue and Assigned
     @Override
-    public IssueResponse assignIssueToUser(Long issueId, Long userId) {
-        Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue not found"));
+    public IssueResponse assignIssueToUser(
+            Long issueId,
+            Long userId) {
 
-        organizationSecurityService.validateIssueAccess(issue);
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Issue not found"));
+
+        organizationSecurityService
+                .validateIssueAccess(issue);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new ResourceNotFoundException(
+                                "User not found"));
 
-        organizationSecurityService.validateIssueAndUser(issue,user);
+        organizationSecurityService
+                .validateIssueAndUser(issue, user);
 
         issue.setAssignedTo(user);
+
         issueRepository.save(issue);
 
-        notificationService.createNotification(user,
-                 "You were asigned to "+issue.getTitle());
+        notificationService.createNotification(
+                user,
+                "You were asigned to "
+                        + issue.getTitle()
+        );
 
         activityService.logActivity(
                 issue,
                 currentUserService.getCurrentUser(),
                 ActivityAction.ASSIGNED,
-                "Assigned issue to " + user.getName()
+                "Assigned issue to "
+                        + user.getName()
         );
 
         return mapToResponse(issue);
     }
 
 
-
     // Search
 //    @Override
-//    public List<IssueResponse> searchIssues(IssueSearchRequest request) {
+//    public List<IssueResponse> searchIssues(
+//            IssueSearchRequest request) {
 //
 //        User currentUser = currentUserService.getCurrentUser();
 //
 //        Long organizationId = currentUser.getOrganization().getId();
 //
 //        List<Issue> issues = issueRepository.searchIssues(
-//            organizationId
-//                ,request.getStatus()
+//                organizationId,
+//                request.getStatus()
 //        );
 //
 //        List<Issue> issues = issueRepository.searchIssues(
@@ -357,7 +444,6 @@ public class IssueServiceImpl implements IssueService {
 //                request.getPriority(),
 //                request.getProjectId()
 //        );
-//
 //
 //        List<Issue> issues = issueRepository.searchIssues(
 //                organizationId,
@@ -367,20 +453,26 @@ public class IssueServiceImpl implements IssueService {
 //                request.getAssigneeId()
 //        );
 //
-//        return issues.stream().map(issue -> mapToResponse(issue)).toList();
+//        return issues.stream()
+//                .map(issue -> mapToResponse(issue))
+//                .toList();
 //    }
 
 
-@Override
-public Page<IssueResponse> searchIssues(IssueSearchRequest request,Pageable pageable) {
+    @Override
+    public Page<IssueResponse> searchIssues(
+            IssueSearchRequest request,
+            Pageable pageable) {
 
-    User currentUser = currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
 
-    Long organizationId = currentUser.getOrganization().getId();
+        Long organizationId =
+                currentUser.getOrganization().getId();
 
 //        List<Issue> issues = issueRepository.searchIssues(
-//                organizationId
-//                ,request.getStatus()
+//                organizationId,
+//                request.getStatus()
 //        );
 
 //        List<Issue> issues = issueRepository.searchIssues(
@@ -396,21 +488,28 @@ public Page<IssueResponse> searchIssues(IssueSearchRequest request,Pageable page
 //                request.getProjectId()
 //        );
 
+        Page<Issue> issues =
+                issueRepository.searchIssues(
+                        organizationId,
+                        request.getStatus(),
+                        request.getPriority(),
+                        request.getProjectId(),
+                        request.getAssigneeId(),
+                        pageable
+                );
 
-    Page<Issue> issues = issueRepository.searchIssues(
-            organizationId,
-            request.getStatus(),
-            request.getPriority(),
-            request.getProjectId(),
-            request.getAssigneeId(),
-            pageable
-    );
+        //return issues.stream()
+        //        .map(issue -> mapToResponse(issue))
+        //        .toList();
 
-    //return issues.stream().map(issue -> mapToResponse(issue)).toList();
-    return issues.map(issue -> mapToResponse(issue));
-}
+        return issues.map(
+                issue -> mapToResponse(issue)
+        );
+    }
 
-    private IssueResponse mapToResponse(Issue issue) {
+
+    private IssueResponse mapToResponse(
+            Issue issue) {
 
         return new IssueResponse(
                 issue.getId(),
@@ -425,7 +524,9 @@ public Page<IssueResponse> searchIssues(IssueSearchRequest request,Pageable page
                         : null,
                 issue.getStoryPoints(),
 
-                issue.getAssignedTo() != null ? issue.getAssignedTo().getId() : null,
+                issue.getAssignedTo() != null
+                        ? issue.getAssignedTo().getId()
+                        : null,
 
                 issue.getAssignedTo() != null
                         ? issue.getAssignedTo().getName()

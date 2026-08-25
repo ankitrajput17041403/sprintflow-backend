@@ -5,10 +5,11 @@ import com.sprintflow.dto.LoginRequest;
 import com.sprintflow.dto.RegisterRequest;
 import com.sprintflow.entity.Organization;
 import com.sprintflow.entity.User;
-import com.sprintflow.enums.Role;
 import com.sprintflow.repository.OrganizationRepository;
 import com.sprintflow.repository.UserRepository;
 import com.sprintflow.security.JwtService;
+import com.sprintflow.exception.BusinessException;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,11 +27,17 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+
     @Override
     public AuthResponse register(RegisterRequest request) {
+
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email Already Exist");
+
+            throw new BusinessException(
+                    "Email already exists"
+            );
         }
+
         Organization organization = organizationRepository
                 .findByName(request.getOrganizationName())
                 .orElse(null);
@@ -38,48 +45,68 @@ public class AuthServiceImpl implements AuthService {
         if (organization == null) {
 
             organization = new Organization();
-            organization.setName(request.getOrganizationName());
 
-            organization = organizationRepository.save(organization);
+            organization.setName(
+                    request.getOrganizationName()
+            );
+
+            organization = organizationRepository.save(
+                    organization
+            );
         }
 
         User user = new User();
+
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
+
         user.setRole(request.getRole());
         user.setOrganization(organization);
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(request.getEmail());
+        String token =
+                jwtService.generateToken(
+                        request.getEmail()
+                );
 
         return new AuthResponse(token);
     }
 
+
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        try{
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 )
         );
-        }catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-        System.out.println("Authentication successful");
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //Password is-Pass@123
+        System.out.println(
+                "Authentication successful"
+        );
 
-        String token = jwtService.generateToken(user.getEmail());
+        User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        String token =
+                jwtService.generateToken(
+                        user.getEmail()
+                );
 
         return new AuthResponse(token);
-
     }
 }

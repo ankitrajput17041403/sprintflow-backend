@@ -2,10 +2,10 @@ package com.sprintflow.service.impl;
 
 import com.sprintflow.dto.*;
 import com.sprintflow.entity.*;
-
 import com.sprintflow.enums.SprintStatus;
+import com.sprintflow.exception.BusinessException;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.IssueRepository;
-
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.repository.SprintRepository;
 import com.sprintflow.service.CurrentUserService;
@@ -32,17 +32,18 @@ public class SprintServiceImpl implements SprintService {
     private final IssueRepository issueRepository;
     private final NotificationService notificationService;
 
+
     @Override
     public SprintResponse createSprint(CreateSprintRequest request) {
 
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+                        new ResourceNotFoundException("Project not found"));
 
         organizationSecurityService.validateProjectAccess(project);
 
-
         Sprint sprint = new Sprint();
+
         sprint.setName(request.getName());
         sprint.setGoal(request.getGoal());
         sprint.setStartDate(request.getStartDate());
@@ -51,24 +52,24 @@ public class SprintServiceImpl implements SprintService {
         sprint.setProject(project);
         sprint.setCreatedBy(currentUserService.getCurrentUser());
         sprint.setCreatedAt(LocalDateTime.now());
+
         sprintRepository.save(sprint);
 
-
         return mapToResponse(sprint);
-
     }
+
 
     @Override
     public List<SprintResponse> getAllSprints(Long projectId) {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found"));
+                        new ResourceNotFoundException("Project not found"));
 
         organizationSecurityService.validateProjectAccess(project);
 
-        List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
-
+        List<Sprint> sprints =
+                sprintRepository.findByProjectId(projectId);
 
         return sprints.stream()
                 .map(this::mapToResponse)
@@ -81,23 +82,22 @@ public class SprintServiceImpl implements SprintService {
 
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Sprint not found"));
-
+                        new ResourceNotFoundException("Sprint not found"));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
         return mapToResponse(sprint);
-
     }
 
 
     @Override
-    public SprintResponse updateSprint(Long id, UpdateSprintRequest request) {
-
+    public SprintResponse updateSprint(
+            Long id,
+            UpdateSprintRequest request) {
 
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Sprint not found"));
+                        new ResourceNotFoundException("Sprint not found"));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
@@ -110,94 +110,134 @@ public class SprintServiceImpl implements SprintService {
         sprintRepository.save(sprint);
 
         return mapToResponse(sprint);
-
     }
+
 
     @Override
     public SprintResponse deleteSprint(Long id) {
 
-
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Sprint not found"));
+                        new ResourceNotFoundException("Sprint not found"));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
         sprintRepository.delete(sprint);
 
         return mapToResponse(sprint);
-
     }
+
 
     @Override
     public SprintResponse startSprint(Long id) {
+
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Sprint not found"));
+                        new ResourceNotFoundException("Sprint not found"));
+
         organizationSecurityService.validateSprintAccess(sprint);
 
-        System.out.println("sprint status----"+sprint.getStatus());
+        System.out.println(
+                "sprint status----" + sprint.getStatus()
+        );
 
         if (sprint.getStatus() != SprintStatus.PLANNED) {
-            throw new RuntimeException("Only planned sprint can be started");
+
+            throw new BusinessException(
+                    "Only planned sprint can be started"
+            );
         }
-        if (sprintRepository.existsByProjectIdAndStatus(sprint.getProject().getId(), SprintStatus.ACTIVE)) {
-            throw new RuntimeException("Project already has an active sprint");
+
+        if (sprintRepository.existsByProjectIdAndStatus(
+                sprint.getProject().getId(),
+                SprintStatus.ACTIVE)) {
+
+            throw new BusinessException(
+                    "Project already has an active sprint"
+            );
         }
+
         sprint.setStatus(SprintStatus.ACTIVE);
+
         sprintRepository.save(sprint);
 
         Set<Long> notifiedUserIds = new HashSet<>();
 
         List<Issue> issues =
                 issueRepository.findBySprintId(sprint.getId());
+
         if (issues.isEmpty()) {
-            throw new RuntimeException(
-                    "No issues are assigned to this sprint Then Notification Not Created !!!");
+
+            throw new BusinessException(
+                    "No issues are assigned to this sprint " +
+                            "Then Notification Not Created !!!"
+            );
         }
 
-        System.out.println("ListOfIssues---"+issues);
+        System.out.println(
+                "ListOfIssues---" + issues
+        );
 
         for (Issue issue : issues) {
 
             User assignedUser = issue.getAssignedTo();
-            if(assignedUser== null){
-                throw  new RuntimeException("Issue Not Asigned To any One It is Null Then Notification Not Created !!!");
-            }
-            System.out.println("AssignedUser--------"+assignedUser.getId());
-            System.out.println("Sprint Get Name------"+issue.getSprint().getName());
 
-            if (assignedUser != null && notifiedUserIds.add(assignedUser.getId())) {
+            if (assignedUser == null) {
+
+                throw new BusinessException(
+                        "Issue Not Assigned To anyone. " +
+                                "Notification Not Created !!!"
+                );
+            }
+
+            System.out.println(
+                    "AssignedUser--------" +
+                            assignedUser.getId()
+            );
+
+            System.out.println(
+                    "Sprint Get Name------" +
+                            issue.getSprint().getName()
+            );
+
+            if (assignedUser != null
+                    && notifiedUserIds.add(
+                    assignedUser.getId())) {
 
                 notificationService.createNotification(
                         assignedUser,
-                        sprint.getName() + "has started"
+                        sprint.getName() + " has started"
                 );
             }
         }
 
-
         return mapToResponse(sprint);
-
     }
+
 
     @Override
     public SprintResponse completeSprint(Long id) {
 
         Sprint sprint = sprintRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Sprint not found"));
+                        new ResourceNotFoundException(
+                                "Sprint not found"
+                        ));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
         if (sprint.getStatus() != SprintStatus.ACTIVE) {
-            throw new RuntimeException(
-                    "Only active sprint can be completed");
+
+            throw new BusinessException(
+                    "Only active sprint can be completed"
+            );
         }
 
         // Get all issues belonging to this sprint
         List<Issue> issues =
-                issueRepository.findBySprintId(sprint.getId());
+                issueRepository.findBySprintId(
+                        sprint.getId()
+                );
 
         // Move unfinished issues back to backlog
         for (Issue issue : issues) {
@@ -222,66 +262,97 @@ public class SprintServiceImpl implements SprintService {
             User assignedUser = issue.getAssignedTo();
 
             if (assignedUser != null
-                    && notifiedUserIds.add(assignedUser.getId())) {
+                    && notifiedUserIds.add(
+                    assignedUser.getId())) {
 
                 notificationService.createNotification(
                         assignedUser,
-                        sprint.getName() + " has been completed"
+                        sprint.getName() +
+                                " has been completed"
                 );
             }
         }
 
         return mapToResponse(sprint);
     }
+
+
     @Override
-    public void planSprint(Long sprintId, SprintPlanningRequest request) {
+    public void planSprint(
+            Long sprintId,
+            SprintPlanningRequest request) {
 
         Sprint sprint = sprintRepository.findById(sprintId)
-                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Sprint not found"
+                        ));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
         for (Long issueId : request.getIssueIds()) {
 
             Issue issue = issueRepository.findById(issueId)
-                    .orElseThrow(() -> new RuntimeException("Issue not found"));
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Issue not found"
+                            ));
 
             organizationSecurityService.validateIssueAccess(issue);
 
-            if (!issue.getProject().getId().equals(sprint.getProject().getId())) {
-                throw new RuntimeException("Issue and Sprint must belong to the same project");
+            if (!issue.getProject().getId()
+                    .equals(sprint.getProject().getId())) {
+
+                throw new BusinessException(
+                        "Issue and Sprint must belong to the same project"
+                );
             }
 
-            List<Issue>  issuesToUpdate = new ArrayList<>();
+            List<Issue> issuesToUpdate =
+                    new ArrayList<>();
+
             issuesToUpdate.add(issue);
+
             issue.setSprint(sprint);
 
             issueRepository.saveAll(issuesToUpdate);
         }
     }
 
+
     @Override
-    public SprintBoardResponse getSprintBoard(Long sprintId) {
+    public SprintBoardResponse getSprintBoard(
+            Long sprintId) {
 
         Sprint sprint = sprintRepository.findById(sprintId)
-                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Sprint not found"
+                        ));
 
         organizationSecurityService.validateSprintAccess(sprint);
 
-        List<Issue> issues = issueRepository.findBySprintId(sprintId);
+        List<Issue> issues =
+                issueRepository.findBySprintId(sprintId);
 
-        List<BoardIssueResponse> todo = new ArrayList<>();
-        List<BoardIssueResponse> inProgress = new ArrayList<>();
-        List<BoardIssueResponse> done = new ArrayList<>();
+        List<BoardIssueResponse> todo =
+                new ArrayList<>();
+
+        List<BoardIssueResponse> inProgress =
+                new ArrayList<>();
+
+        List<BoardIssueResponse> done =
+                new ArrayList<>();
 
         for (Issue issue : issues) {
 
-            BoardIssueResponse boardIssue = new BoardIssueResponse(
-                    issue.getId(),
-                    issue.getTitle(),
-                    issue.getPriority(),
-                    issue.getStatus()
-            );
+            BoardIssueResponse boardIssue =
+                    new BoardIssueResponse(
+                            issue.getId(),
+                            issue.getTitle(),
+                            issue.getPriority(),
+                            issue.getStatus()
+                    );
 
             switch (issue.getStatus()) {
 
@@ -299,7 +370,8 @@ public class SprintServiceImpl implements SprintService {
             }
         }
 
-        SprintBoardResponse response = new SprintBoardResponse();
+        SprintBoardResponse response =
+                new SprintBoardResponse();
 
         response.setTodo(todo);
         response.setInProgress(inProgress);
@@ -308,7 +380,9 @@ public class SprintServiceImpl implements SprintService {
         return response;
     }
 
-    private SprintResponse mapToResponse(Sprint sprint) {
+
+    private SprintResponse mapToResponse(
+            Sprint sprint) {
 
         return new SprintResponse(
                 sprint.getId(),

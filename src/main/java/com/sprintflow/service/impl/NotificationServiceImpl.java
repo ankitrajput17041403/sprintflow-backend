@@ -3,10 +3,11 @@ package com.sprintflow.service.impl;
 import com.sprintflow.dto.NotificationResponse;
 import com.sprintflow.entity.Notification;
 import com.sprintflow.entity.User;
+import com.sprintflow.exception.AccessDeniedException;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.NotificationRepository;
 import com.sprintflow.service.CurrentUserService;
 import com.sprintflow.service.NotificationService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,51 +24,71 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<NotificationResponse> getMyNotifications() {
 
-        User currentUser = currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
 
-        List<Notification> notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(currentUser.getId());
+        List<Notification> notifications =
+                notificationRepository
+                        .findByRecipientIdOrderByCreatedAtDesc(
+                                currentUser.getId());
 
-        System.out.println("notifications--------"+notifications);
-        return notifications.stream().map(notific->mapToResponse(notific)).toList();
+        return notifications.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
+
 
     @Override
     public void markAsRead(Long notificationId) {
 
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> new RuntimeException("Notification NOT Found"));
-        User currentUser = currentUserService.getCurrentUser();
+        Notification notification =
+                notificationRepository
+                        .findById(notificationId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Notification not found"));
 
-        if(!notification.getRecipient().getId().equals(currentUser.getId())){
-            throw new RuntimeException("Access Denied");
+        User currentUser =
+                currentUserService.getCurrentUser();
+
+        if (!notification.getRecipient()
+                .getId()
+                .equals(currentUser.getId())) {
+
+            throw new AccessDeniedException(
+                    "Access denied");
         }
 
         notification.setRead(true);
-        notificationRepository.save(notification);
 
+        notificationRepository.save(notification);
     }
+
+
     @Override
-    public void createNotification(User recipient, String message) {
+    public void createNotification(
+            User recipient,
+            String message) {
 
-        System.out.println("===== CREATE NOTIFICATION CALLED =====");
-        System.out.println("Recipient ID: " + recipient.getId());
-        System.out.println("Message: " + message);
-
-        Notification notification = Notification.builder()
-                .recipient(recipient)
-                .message(message)
-                .build();
+        Notification notification =
+                Notification.builder()
+                        .recipient(recipient)
+                        .message(message)
+                        .build();
 
         notificationRepository.save(notification);
-
-        System.out.println("===== NOTIFICATION SAVED =====");
     }
+
+
     @Override
     public Long getUnreadCount() {
 
-        User currentUser = currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
 
         return notificationRepository
-                .countByRecipientIdAndReadFalse(currentUser.getId());
+                .countByRecipientIdAndReadFalse(
+                        currentUser.getId());
     }
 
 
@@ -82,5 +103,3 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 }
-
-

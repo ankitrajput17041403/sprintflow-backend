@@ -1,6 +1,7 @@
 package com.sprintflow.service;
 
 import com.sprintflow.entity.User;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -13,17 +14,25 @@ public class CurrentUserService {
 
     private final UserRepository userRepository;
 
+
     public User getCurrentUser() {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
 
         String email = authentication.getName();
-        System.out.println("Login USER it is.."+email);
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"));
     }
+
+
     public Long getCurrentOrganizationId() {
+
         return getCurrentUser()
                 .getOrganization()
                 .getId();

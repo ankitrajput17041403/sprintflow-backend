@@ -6,9 +6,11 @@ import com.sprintflow.dto.UpdateProjectRequest;
 import com.sprintflow.entity.Organization;
 import com.sprintflow.entity.Project;
 import com.sprintflow.entity.User;
+import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.OrganizationRepository;
 import com.sprintflow.repository.ProjectRepository;
 import com.sprintflow.service.CurrentUserService;
+import com.sprintflow.service.OrganizationSecurityService;
 import com.sprintflow.service.ProjectService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final OrganizationRepository organizationRepository;
 
     private final CurrentUserService currentUserService;
+    private final OrganizationSecurityService organizationSecurityService;
+
 
 //   There is Secuirty Issue ..............
 //    @Override
@@ -68,7 +72,13 @@ public class ProjectServiceImpl implements ProjectService {
 
         project = projectRepository.save(project);
 
-        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), organization.getName());
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                organization.getName()
+        );
     }
 
 //    @Override
@@ -95,7 +105,17 @@ public class ProjectServiceImpl implements ProjectService {
         //organizationId---
         long organization = currentUser.getOrganization().getId();
 
-        return projectRepository.findByOrganizationId(organization).stream().map(project -> new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName())).toList();
+        return projectRepository
+                .findByOrganizationId(organization)
+                .stream()
+                .map(project -> new ProjectResponse(
+                        project.getId(),
+                        project.getName(),
+                        project.getDescription(),
+                        project.getCreatedAt(),
+                        project.getOrganization().getName()
+                ))
+                .toList();
     }
 
 
@@ -137,8 +157,18 @@ public class ProjectServiceImpl implements ProjectService {
 //        }
 
         //2nd way------
-        Project project = projectRepository.findByIdAndOrganizationId(id, organizationId).orElseThrow(() -> new RuntimeException("Project NOT Found"));
-        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
+        Project project = projectRepository
+                .findByIdAndOrganizationId(id, organizationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Project not found"));
+
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
     }
 
 
@@ -166,27 +196,31 @@ public class ProjectServiceImpl implements ProjectService {
 //    }
 
     @Override
-    public ProjectResponse updateProject(Long id, UpdateProjectRequest request) {
+    public ProjectResponse updateProject(
+            Long id,
+            UpdateProjectRequest request) {
 
-        //Login_Current_user---
-        User currentUser = currentUserService.getCurrentUser();
+        Project project = projectRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Project not found"));
 
-        //organizationId---
-        Long organizationId = currentUser.getOrganization().getId();
-
-        Project project = projectRepository.findById(id).orElseThrow(() -> new RuntimeException("Project not found"));
-
-        if (!organizationId.equals(project.getOrganization().getId())) {
-            throw new RuntimeException("Access denied");
-        }
+        organizationSecurityService.validateProjectAccess(project);
 
         project.setName(request.getName());
         project.setDescription(request.getDescription());
 
         project = projectRepository.save(project);
 
-        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
     }
+
 
 //    @Override
 //    public ProjectResponse deleteProject(Long id) {
@@ -207,20 +241,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse deleteProject(Long id) {
 
-        //Login_Current_user---
-        User currentUser = currentUserService.getCurrentUser();
+        Project project = projectRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Project not found"));
 
-        //organizationId---
-        Long organizationId = currentUser.getOrganization().getId();
+        organizationSecurityService.validateProjectAccess(project);
 
-        Project project = projectRepository.findById(id).orElseThrow(() -> new RuntimeException("Project not found"));
-
-        if (!organizationId.equals(project.getOrganization().getId())) {
-            throw new RuntimeException("Access denied");
-        }
         projectRepository.delete(project);
-        return new ProjectResponse(project.getId(), project.getName(), project.getDescription(), project.getCreatedAt(), project.getOrganization().getName());
+
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getCreatedAt(),
+                project.getOrganization().getName()
+        );
     }
-
-
 }
