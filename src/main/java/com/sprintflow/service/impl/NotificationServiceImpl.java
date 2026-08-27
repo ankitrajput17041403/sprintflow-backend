@@ -27,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
         User currentUser =
                 currentUserService.getCurrentUser();
 
+
         List<Notification> notifications =
                 notificationRepository
                         .findByRecipientIdOrderByCreatedAtDesc(

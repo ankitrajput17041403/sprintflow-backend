@@ -6,6 +6,7 @@ import com.sprintflow.service.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +20,13 @@ import java.util.List;
 public class AttachmentController {
 
     private final AttachmentService attachmentService;
-
     @PostMapping("/issues/{issueId}")
     public ResponseEntity<AttachmentResponse> uploadAttachment(
             @PathVariable Long issueId,
             @RequestParam("file") MultipartFile file) {
 
-        return ResponseEntity.ok(
-                attachmentService.uploadAttachment(issueId, file));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(attachmentService.uploadAttachment(issueId, file));
     }
 
     @GetMapping("/issues/{issueId}")

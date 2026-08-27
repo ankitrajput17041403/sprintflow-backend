@@ -12,12 +12,17 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByOrganizationId(Long organizationId);
 
-    Optional<Project> findByIdAndOrganizationId(Long projectId, Long organizationId);
+    Optional<Project> findByIdAndOrganizationId(
+            Long projectId,
+            Long organizationId
+    );
 
     @Query("""
-       SELECT COUNT(p)
-       FROM Project p
-       WHERE p.organization.id = :organizationId
-       """)
-    Long countProjectsByOrganization(@Param("organizationId") Long organizationId);
+            SELECT COUNT(p)
+            FROM Project p
+            WHERE p.organization.id = :organizationId
+            """)
+    Long countProjectsByOrganization(
+            @Param("organizationId") Long organizationId
+    );
 }

@@ -1,23 +1,19 @@
 package com.sprintflow.controller;
 
-
 import com.sprintflow.dto.*;
-
 import com.sprintflow.service.IssueService;
 import com.sprintflow.service.SprintService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-@AllArgsConstructor
-@RequestMapping("/api/sprints")
 @RestController
+@RequestMapping("/api/sprints")
+@RequiredArgsConstructor
 public class SprintController {
 
     private final SprintService sprintService;
@@ -25,9 +21,11 @@ public class SprintController {
 
     @PostMapping
     public ResponseEntity<SprintResponse> createSprint(
-            @Valid @RequestBody CreateSprintRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(sprintService.createSprint(request));
+            @Valid @RequestBody CreateSprintRequest request) {
 
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(sprintService.createSprint(request));
     }
 
     @GetMapping("/project/{projectId}")
@@ -66,6 +64,7 @@ public class SprintController {
                 sprintService.deleteSprint(id)
         );
     }
+
     @GetMapping("/{sprintId}/issues")
     public ResponseEntity<List<IssueResponse>> getIssuesBySprint(
             @PathVariable Long sprintId) {
@@ -83,6 +82,7 @@ public class SprintController {
                 sprintService.startSprint(id)
         );
     }
+
     @PutMapping("/{id}/complete")
     public ResponseEntity<SprintResponse> completeSprint(
             @PathVariable Long id) {
@@ -91,6 +91,7 @@ public class SprintController {
                 sprintService.completeSprint(id)
         );
     }
+
     @PutMapping("/{sprintId}/plan")
     public ResponseEntity<Void> planSprint(
             @PathVariable Long sprintId,
@@ -101,10 +102,13 @@ public class SprintController {
         return ResponseEntity.noContent().build();
     }
 
-    //Board
+    // Board
     @GetMapping("/{sprintId}/board")
-    public ResponseEntity<SprintBoardResponse> getSprintBoard(@PathVariable Long sprintId) {
+    public ResponseEntity<SprintBoardResponse> getSprintBoard(
+            @PathVariable Long sprintId) {
 
-        return ResponseEntity.ok(sprintService.getSprintBoard(sprintId));
+        return ResponseEntity.ok(
+                sprintService.getSprintBoard(sprintId)
+        );
     }
 }

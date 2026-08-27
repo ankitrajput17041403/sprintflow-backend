@@ -29,32 +29,33 @@ public class ProjectController {
     }
 
     @GetMapping("/all")
-    public List<ProjectResponse> getAllProjects(){
+    public List<ProjectResponse> getAllProjects() {
         return projectService.getAllProjects();
     }
 
     @GetMapping("/{id}")
-    public ProjectResponse getProjectById(@PathVariable  Long id){
+    public ProjectResponse getProjectById(
+            @PathVariable Long id) {
+
         return projectService.getProjectById(id);
     }
 
     @PutMapping("/{id}")
     public ProjectResponse updateProject(
             @PathVariable Long id,
-            @RequestBody UpdateProjectRequest request) {
+            @Valid @RequestBody UpdateProjectRequest request) {
 
         return projectService.updateProject(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public ProjectResponse updateProject(
+    public ProjectResponse deleteProject(
             @PathVariable Long id) {
 
         return projectService.deleteProject(id);
     }
 
-
-    //Backlog Strt frm here---
+    // Backlog starts here
 
     @GetMapping("/{projectId}/backlog")
     public ResponseEntity<List<IssueResponse>> getBacklogIssues(

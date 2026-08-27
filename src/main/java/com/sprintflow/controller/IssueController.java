@@ -26,7 +26,8 @@ public class IssueController {
     public ResponseEntity<IssueResponse> createIssue(
             @Valid @RequestBody CreateIssueRequest request) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
                 .body(issueService.createIssue(request));
     }
 
@@ -35,7 +36,8 @@ public class IssueController {
             @PathVariable Long projectId) {
 
         return ResponseEntity.ok(
-                issueService.getAllIssues(projectId));
+                issueService.getAllIssues(projectId)
+        );
     }
 
     @GetMapping("/{id}")
@@ -43,7 +45,8 @@ public class IssueController {
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
-                issueService.getIssueById(id));
+                issueService.getIssueById(id)
+        );
     }
 
     @GetMapping("/sprint/{sprintId}")
@@ -61,7 +64,8 @@ public class IssueController {
             @Valid @RequestBody UpdateIssueRequest request) {
 
         return ResponseEntity.ok(
-                issueService.updateIssue(id, request));
+                issueService.updateIssue(id, request)
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -69,7 +73,8 @@ public class IssueController {
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
-                issueService.deleteIssue(id));
+                issueService.deleteIssue(id)
+        );
     }
 
     @PutMapping("/{issueId}/assign-sprint/{sprintId}")
@@ -91,7 +96,7 @@ public class IssueController {
         );
     }
 
-    //Move Status-- means change the status...
+    // Move Status -- means change the status
     @PutMapping("/{issueId}/status")
     public ResponseEntity<Void> updateIssueStatus(
             @PathVariable Long issueId,
@@ -102,8 +107,7 @@ public class IssueController {
         return ResponseEntity.noContent().build();
     }
 
-
-    //Issue and Assigned
+    // Issue and Assigned
     @PreAuthorize("hasAnyRole('ORG_ADMIN','PROJECT_MANAGER')")
     @PutMapping("/{issueId}/assign/{userId}")
     public ResponseEntity<IssueResponse> assignIssueToUser(
@@ -115,7 +119,6 @@ public class IssueController {
         );
     }
 
-
     @GetMapping("/project/{projectId}/backlog")
     public ResponseEntity<List<IssueResponse>> getBacklogIssues(
             @PathVariable Long projectId) {
@@ -125,8 +128,8 @@ public class IssueController {
         );
     }
 
-//    //Search
-//    @GetMapping ("/search")
+//    // Search
+//    @GetMapping("/search")
 //    public ResponseEntity<List<IssueResponse>> searchIssues(
 //            @RequestBody IssueSearchRequest request) {
 //
@@ -135,38 +138,34 @@ public class IssueController {
 //        );
 //    }
 //
-//      @GetMapping("/search")
-//      public ResponseEntity<List<IssueResponse>> searchIssues(
-//              @RequestParam(required = false) IssueStatus status,
-//              @RequestParam(required = false) Priority priority,
-//              @RequestParam(required = false) Long projectId,
-//              @RequestParam(required = false) Long assigneeId) {
+//    @GetMapping("/search")
+//    public ResponseEntity<List<IssueResponse>> searchIssues(
+//            @RequestParam(required = false) IssueStatus status,
+//            @RequestParam(required = false) Priority priority,
+//            @RequestParam(required = false) Long projectId,
+//            @RequestParam(required = false) Long assigneeId) {
 //
-//         IssueSearchRequest request = new IssueSearchRequest();
-//         request.setStatus(status);
-//         request.setPriority(priority);
-//         request.setProjectId(projectId);
-//         request.setAssigneeId(assigneeId);
+//        IssueSearchRequest request = new IssueSearchRequest();
+//        request.setStatus(status);
+//        request.setPriority(priority);
+//        request.setProjectId(projectId);
+//        request.setAssigneeId(assigneeId);
 //
-//         return ResponseEntity.ok(issueService.searchIssues(request));
-//      }
-
+//        return ResponseEntity.ok(
+//                issueService.searchIssues(request)
+//        );
+//    }
 
     @GetMapping("/search")
     public ResponseEntity<Page<IssueResponse>> searchIssues(
-
             @RequestParam(required = false) IssueStatus status,
-
             @RequestParam(required = false) Priority priority,
-
             @RequestParam(required = false) Long projectId,
-
             @RequestParam(required = false) Long assigneeId,
-
-            Pageable pageable
-    ) {
+            Pageable pageable) {
 
         IssueSearchRequest request = new IssueSearchRequest();
+
         request.setStatus(status);
         request.setPriority(priority);
         request.setProjectId(projectId);
@@ -177,4 +176,3 @@ public class IssueController {
         );
     }
 }
-
