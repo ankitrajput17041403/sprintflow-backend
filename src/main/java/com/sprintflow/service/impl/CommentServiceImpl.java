@@ -10,12 +10,14 @@ import com.sprintflow.repository.CommentRepository;
 import com.sprintflow.repository.IssueRepository;
 import com.sprintflow.service.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class CommentServiceImpl implements CommentService {
 
     private final IssueRepository issueRepository;
@@ -49,32 +51,25 @@ public class CommentServiceImpl implements CommentService {
 
         comment = commentRepository.save(comment);
 
+        // Log comment creation for debugging purposes
+        log.debug(
+                "Comment {} created on issue {} by user {}",
+                comment.getId(),
+                issue.getId(),
+                currentUser.getId()
+        );
 
-        System.out.println("===== COMMENT CREATED =====");
-
-        System.out.println(
-                "Issue Creator ID: "
-                        + issue.getCreatedBy().getId());
-
-        System.out.println(
-                "Current User ID: "
-                        + currentUser.getId());
-
-
-        if (!issue.getCreatedBy().getId()
-                .equals(currentUser.getId())) {
-
-            System.out.println(
-                    "===== CREATING COMMENT NOTIFICATION =====");
+        // Notify the user assigned to the issue about the new comment
+        if (issue.getAssignedTo() != null &&
+                !issue.getAssignedTo().getId().equals(currentUser.getId())) {
 
             notificationService.createNotification(
-                    issue.getCreatedBy(),
-                    "New comment on issue: "
-                            + issue.getTitle()
+                    issue.getAssignedTo(),
+                    "New comment on issue: " + issue.getTitle()
             );
         }
 
-
+        // Record the comment action in the issue activity history
         activityService.logActivity(
                 issue,
                 currentUser,
@@ -129,6 +124,7 @@ public class CommentServiceImpl implements CommentService {
 
         comment = commentRepository.save(comment);
 
+        // Record the comment update in the issue activity history
         activityService.logActivity(
                 comment.getIssue(),
                 currentUserService.getCurrentUser(),
@@ -156,6 +152,7 @@ public class CommentServiceImpl implements CommentService {
         organizationSecurityService
                 .validateCommentOwnership(comment);
 
+        // Record the comment deletion in the issue activity history
         activityService.logActivity(
                 comment.getIssue(),
                 currentUserService.getCurrentUser(),

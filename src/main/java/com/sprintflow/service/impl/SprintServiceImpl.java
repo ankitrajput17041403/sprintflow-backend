@@ -13,6 +13,7 @@ import com.sprintflow.service.NotificationService;
 import com.sprintflow.service.OrganizationSecurityService;
 import com.sprintflow.service.SprintService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ import java.util.Set;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class SprintServiceImpl implements SprintService {
 
     private final SprintRepository sprintRepository;
@@ -137,8 +139,9 @@ public class SprintServiceImpl implements SprintService {
 
         organizationSecurityService.validateSprintAccess(sprint);
 
-        System.out.println(
-                "sprint status----" + sprint.getStatus()
+        log.debug(
+                "Current sprint status: {}",
+                sprint.getStatus()
         );
 
         if (sprint.getStatus() != SprintStatus.PLANNED) {
@@ -174,8 +177,10 @@ public class SprintServiceImpl implements SprintService {
             );
         }
 
-        System.out.println(
-                "ListOfIssues---" + issues
+        log.debug(
+                "Issues assigned to sprint {}: {}",
+                sprint.getId(),
+                issues.size()
         );
 
         for (Issue issue : issues) {
@@ -190,14 +195,16 @@ public class SprintServiceImpl implements SprintService {
                 );
             }
 
-            System.out.println(
-                    "AssignedUser--------" +
-                            assignedUser.getId()
+            log.debug(
+                    "Issue {} is assigned to user {}",
+                    issue.getId(),
+                    assignedUser.getId()
             );
 
-            System.out.println(
-                    "Sprint Get Name------" +
-                            issue.getSprint().getName()
+            log.debug(
+                    "Issue {} belongs to sprint {}",
+                    issue.getId(),
+                    issue.getSprint().getName()
             );
 
             if (assignedUser != null

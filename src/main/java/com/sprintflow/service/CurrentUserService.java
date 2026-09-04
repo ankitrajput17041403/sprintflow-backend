@@ -4,10 +4,12 @@ import com.sprintflow.entity.User;
 import com.sprintflow.exception.ResourceNotFoundException;
 import com.sprintflow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrentUserService {
@@ -23,6 +25,7 @@ public class CurrentUserService {
                         .getAuthentication();
 
         String email = authentication.getName();
+        log.debug("Fetching current user with email: {}", email);
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->

@@ -366,10 +366,7 @@ public class IssueServiceImpl implements IssueService {
                 issue,
                 currentUserService.getCurrentUser(),
                 ActivityAction.STATUS_CHANGED,
-                "Status changed from "
-                        + oldStatus
-                        + " to "
-                        + request.getIssueStatus()
+                "Status changed from " + oldStatus + " to " + request.getIssueStatus()
         );
     }
 

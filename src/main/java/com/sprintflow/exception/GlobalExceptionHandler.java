@@ -33,6 +33,20 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(
+            org.springframework.security.access.AccessDeniedException.class
+    )
+    public ResponseEntity<ErrorResponse> handleSpringSecurityAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(
+                        403,
+                        "Access denied"
+                ));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException ex) {
